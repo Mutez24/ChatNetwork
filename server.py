@@ -7,7 +7,10 @@ import time
 import socket
 import select
 
+#Import DB library
+import sqlite3
 
+clients_connectes = []
 
 def read_kbd_input(inputQueue):
     print('Ready for keyboard input:')
@@ -18,7 +21,57 @@ def read_kbd_input(inputQueue):
         # Enqueue this input string.
         inputQueue.put(input_str)
 
+def creation_database():
+    conn = sqlite3.connect('database_chat.db',check_same_thread=False)
+    print ("Opened database successfully")
+
+    conn.execute('''CREATE TABLE IF NOT EXISTS user
+            (USERNAME      TEXT    PRIMARY KEY     NOT NULL,
+            PASSWORD        CHAR(50));''')
+    print ("Table created successfully")
+    return conn
+
+def login_register(connexion_avec_client, conn):
+    global clients_connectes
+    msg = b""
+    response=""
+    while(response != "1" and response != "2"):
+        msg = b"Bienvenue, appuyez sur 1 pour vous connecter ou 2 pour creer un compte"
+        connexion_avec_client.send(msg)
+        msg = connexion_avec_client.recv(1024)
+        response = msg.decode()
+    
+    
+
+    if(response == "1"):
+        pass
+    if(response == "2"):
+        unconnected = True
+        while(unconnected):
+            try:
+                msg = b"Username :"
+                connexion_avec_client.send(msg)
+                username = connexion_avec_client.recv(1024)
+                username = username.decode()
+                msg = b"Password :"
+                connexion_avec_client.send(msg)
+                password = connexion_avec_client.recv(1024)
+                password = password.decode()
+                conn.execute("INSERT INTO user (USERNAME,PASSWORD) VALUES ('{}','{}')".format(username,password))
+                conn.commit()
+                unconnected = False
+            except sqlite3.IntegrityError:
+                msg = b"Username already existing"
+                connexion_avec_client.send(msg)
+        
+        msg = b"Creation de compte reussie "
+        connexion_avec_client.send(msg)
+        clients_connectes.append(connexion_avec_client)
+
+
 def main():
+    #Define global variables
+    global clients_connectes
 
     #! Set up socket variables
     hote = ''
@@ -26,11 +79,13 @@ def main():
     connexion_principale = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     connexion_principale.bind((hote, port))
     connexion_principale.listen(50)
-    clients_connectes = []
+    
 
 
     EXIT_COMMAND = "#Exit" # Command to exit this program
 
+    #! DATABASE CREATION
+    conn = creation_database()
     #Keyboard input queue to pass data from the thread reading the keyboard inputs to the main thread.
     inputQueue = queue.Queue()
 
@@ -48,7 +103,7 @@ def main():
         # Read keyboard inputs
         if (inputQueue.qsize() > 0):
             input_str = inputQueue.get()
-            print("input_str = {}".format(input_str))
+            
 
             if (input_str == EXIT_COMMAND):
                 print("Exiting serial terminal.")
@@ -68,7 +123,8 @@ def main():
             # On ajoute le socket connecté à la liste des clients
             #TODO Trucs à faire pour l'ajout de compte, la connexion et peut-être suppression (argpars peut être pas autorisés)
             #TODO Utiliser un multithread pour gérer ses éléments
-            clients_connectes.append(connexion_avec_client)
+            (threading.Thread(target=login_register, args=(connexion_avec_client,conn,), daemon=True)).start()
+            
         
         # Maintenant, on écoute la liste des clients connectés
         # Les clients renvoyés par select sont ceux devant être lus (recv)

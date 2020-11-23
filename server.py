@@ -16,8 +16,6 @@ def read_kbd_input(inputQueue):
         input_str = input()
         
         # Enqueue this input string.
-        # Note: Lock not required here since we are only calling a single Queue method, not a sequence of them 
-        # which would otherwise need to be treated as one atomic operation.
         inputQueue.put(input_str)
 
 def main():
@@ -27,12 +25,11 @@ def main():
     port = 12800
     connexion_principale = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     connexion_principale.bind((hote, port))
-    connexion_principale.listen(5)
+    connexion_principale.listen(50)
     clients_connectes = []
-    serveur_lance = True
 
 
-    EXIT_COMMAND = "exit" # Command to exit this program
+    EXIT_COMMAND = "#Exit" # Command to exit this program
 
     #Keyboard input queue to pass data from the thread reading the keyboard inputs to the main thread.
     inputQueue = queue.Queue()
@@ -46,7 +43,7 @@ def main():
     print("Le serveur écoute à présent sur le port {}".format(port))
 
     #TODO Main loop
-    while (serveur_lance):
+    while (True):
 
         # Read keyboard inputs
         if (inputQueue.qsize() > 0):
@@ -69,6 +66,8 @@ def main():
         for connexion in connexions_demandees:
             connexion_avec_client, infos_connexion = connexion.accept()
             # On ajoute le socket connecté à la liste des clients
+            #TODO Trucs à faire pour l'ajout de compte, la connexion et peut-être suppression (argpars peut être pas autorisés)
+            #TODO Utiliser un multithread pour gérer ses éléments
             clients_connectes.append(connexion_avec_client)
         
         # Maintenant, on écoute la liste des clients connectés
@@ -89,10 +88,13 @@ def main():
                 msg_recu = client.recv(1024)
                 # Peut planter si le message contient des caractères spéciaux
                 msg_recu = msg_recu.decode()
-                print("Reçu {}".format(msg_recu))
-                client.send(b"5 / 5")
-                if msg_recu == "fin":
-                    serveur_lance = False
+                print("user > {}".format(msg_recu)) #Affichage côté serveur
+                
+                for receveur in clients_connectes:
+                    if(client != receveur):
+                        receveur.send(msg_recu.encode()) #Envoi du msg reçu sur le channel public
+                #TODO Faire les checks pour fonctions clients
+                #! if msg_recu == 
         # Sleep for a short time to prevent this thread from sucking up all of your CPU resources on your PC.
         time.sleep(0.01) 
     

@@ -1,109 +1,107 @@
-# Python program to implement server side of chat room. 
-import socket 
-import select 
-import sys 
-from _thread import *
+# Import threading libraries
+import threading
+import queue
+import time
 
-"""The first argument AF_INET is the address domain of the 
-socket. This is used when we have an Internet Domain with 
-any two hosts The second argument is the type of socket. 
-SOCK_STREAM means that data or characters are read in 
-a continuous flow."""
-server = socket.socket(socket.AF_INET, socket.SOCK_STREAM) 
-server.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1) 
+# Import sockets libraries
+import socket
+import select
 
-# checks whether sufficient arguments have been provided 
-if len(sys.argv) != 3: 
-	print ("Correct usage: script, IP address, port number") 
-	exit() 
 
-# takes the first argument from command prompt as IP address 
-IP_address = str(sys.argv[1]) 
 
-# takes second argument from command prompt as port number 
-Port = int(sys.argv[2]) 
+def read_kbd_input(inputQueue):
+    print('Ready for keyboard input:')
+    while (True):
+        # Receive keyboard input from user.
+        input_str = input()
+        
+        # Enqueue this input string.
+        # Note: Lock not required here since we are only calling a single Queue method, not a sequence of them 
+        # which would otherwise need to be treated as one atomic operation.
+        inputQueue.put(input_str)
 
-""" 
-binds the server to an entered IP address and at the 
-specified port number. 
-The client must be aware of these parameters 
-"""
-server.bind((IP_address, Port)) 
+def main():
 
-""" 
-listens for 100 active connections. This number can be 
-increased as per convenience. 
-"""
-server.listen(100) 
+    #! Set up socket variables
+    hote = ''
+    port = 12800
+    connexion_principale = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    connexion_principale.bind((hote, port))
+    connexion_principale.listen(5)
+    clients_connectes = []
+    serveur_lance = True
 
-list_of_clients = [] 
 
-def clientthread(conn, addr): 
+    EXIT_COMMAND = "exit" # Command to exit this program
 
-	# sends a message to the client whose user object is conn 
-	conn.send(b"Welcome to this chatroom!") 
+    #Keyboard input queue to pass data from the thread reading the keyboard inputs to the main thread.
+    inputQueue = queue.Queue()
 
-	while True: 
-			try: 
-				message = conn.recv(2048) 
-				if message: 
+    # Create & start a thread to read keyboard inputs.
+    # Set daemon to True to auto-kill this thread when all other non-daemonic threads are exited. This is desired since
+    # this thread has no cleanup to do, which would otherwise require a more graceful approach to clean up then exit.
+    inputThread = threading.Thread(target=read_kbd_input, args=(inputQueue,), daemon=True)
+    inputThread.start()
 
-					"""prints the message and address of the 
-					user who just sent the message on the server 
-					terminal"""
-					print ("<" + addr[0] + "> " + message) 
+    print("Le serveur écoute à présent sur le port {}".format(port))
 
-					# Calls broadcast function to send message to all 
-					message_to_send = "<" + addr[0] + "> " + message 
-					broadcast(message_to_send, conn) 
+    #TODO Main loop
+    while (serveur_lance):
 
-				else: 
-					"""message may have no content if the connection 
-					is broken, in this case we remove the connection"""
-					remove(conn) 
+        # Read keyboard inputs
+        if (inputQueue.qsize() > 0):
+            input_str = inputQueue.get()
+            print("input_str = {}".format(input_str))
 
-			except: 
-				continue
+            if (input_str == EXIT_COMMAND):
+                print("Exiting serial terminal.")
+                break # exit the while loop
+            
+            # Insert your code here to do whatever you want with the input_str.
 
-"""Using the below function, we broadcast the message to all 
-clients who's object is not the same as the one sending 
-the message """
-def broadcast(message, connection): 
-	for clients in list_of_clients: 
-		if clients!=connection: 
-			try: 
-				clients.send(message) 
-			except: 
-				clients.close() 
+        #! The rest of your program goes here.
+        
+        # On va vérifier que de nouveaux clients ne demandent pas à se connecter
+        # Pour cela, on écoute la connexion_principale en lecture
+        # On attend maximum 50ms
+        connexions_demandees, wlist, xlist = select.select([connexion_principale], [], [], 0.05)
+        
+        for connexion in connexions_demandees:
+            connexion_avec_client, infos_connexion = connexion.accept()
+            # On ajoute le socket connecté à la liste des clients
+            clients_connectes.append(connexion_avec_client)
+        
+        # Maintenant, on écoute la liste des clients connectés
+        # Les clients renvoyés par select sont ceux devant être lus (recv)
+        # On attend là encore 50ms maximum
+        # On enferme l'appel à select.select dans un bloc try
+        # En effet, si la liste de clients connectés est vide, une exception
+        # Peut être levée
+        clients_a_lire = []
+        try:
+            clients_a_lire, wlist, xlist = select.select(clients_connectes,[], [], 0.05)
+        except select.error:
+            pass
+        else:
+            # On parcourt la liste des clients à lire
+            for client in clients_a_lire:
+                # Client est de type socket
+                msg_recu = client.recv(1024)
+                # Peut planter si le message contient des caractères spéciaux
+                msg_recu = msg_recu.decode()
+                print("Reçu {}".format(msg_recu))
+                client.send(b"5 / 5")
+                if msg_recu == "fin":
+                    serveur_lance = False
+        # Sleep for a short time to prevent this thread from sucking up all of your CPU resources on your PC.
+        time.sleep(0.01) 
+    
+    print("Fermeture des connexions")
+    for client in clients_connectes:
+        client.close()
+    connexion_principale.close()
+    print("End.")
 
-				# if the link is broken, we remove the client 
-				remove(clients) 
-
-"""The following function simply removes the object 
-from the list that was created at the beginning of 
-the program"""
-def remove(connection): 
-	if connection in list_of_clients: 
-		list_of_clients.remove(connection) 
-
-while True: 
-
-	"""Accepts a connection request and stores two parameters, 
-	conn which is a socket object for that user, and addr 
-	which contains the IP address of the client that just 
-	connected"""
-	conn, addr = server.accept() 
-
-	"""Maintains a list of clients for ease of broadcasting 
-	a message to all available people in the chatroom"""
-	list_of_clients.append(conn) 
-
-	# prints the address of the user that just connected 
-	print (addr[0] + " connected") 
-
-	# creates and individual thread for every user 
-	# that connects 
-	start_new_thread(clientthread,(conn,addr)) 
-
-conn.close() 
-server.close() 
+# If you run this Python file directly (ex: via `python3 this_filename.py`), do the following:
+if (__name__ == '__main__'): 
+    main()

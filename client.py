@@ -1,39 +1,21 @@
-# Python program to implement client side of chat room. 
-import socket 
-import select 
-import sys 
+import socket
 
-server = socket.socket(socket.AF_INET, socket.SOCK_STREAM) 
-if len(sys.argv) != 3: 
-	print ("Correct usage: script, IP address, port number") 
-	exit() 
-IP_address = str(sys.argv[1]) 
-Port = int(sys.argv[2]) 
-server.connect((IP_address, Port)) 
+hote = "localhost"
+port = 12800
 
-while True: 
+connexion_avec_serveur = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+connexion_avec_serveur.connect((hote, port))
+print("Connexion établie avec le serveur sur le port {}".format(port))
 
-	# maintains a list of possible input streams 
-	sockets_list = [sys.stdin, server] 
+msg_a_envoyer = b""
+while msg_a_envoyer != b"fin":
+    msg_a_envoyer = input("> ")
+    # Peut planter si vous tapez des caractères spéciaux
+    msg_a_envoyer = msg_a_envoyer.encode()
+    # On envoie le message
+    connexion_avec_serveur.send(msg_a_envoyer)
+    msg_recu = connexion_avec_serveur.recv(1024)
+    print(msg_recu.decode()) # Là encore, peut planter s'il y a des accents
 
-	""" There are two possible input situations. Either the 
-	user wants to give manual input to send to other people, 
-	or the server is sending a message to be printed on the 
-	screen. Select returns from sockets_list, the stream that 
-	is reader for input. So for example, if the server wants 
-	to send a message, then the if condition will hold true 
-	below.If the user wants to send a message, the else 
-	condition will evaluate as true"""
-	read_sockets,write_socket, error_socket = select.select(sockets_list,[],[]) 
-
-	for socks in read_sockets: 
-		if socks == server: 
-			message = socks.recv(2048) 
-			print (message) 
-		else: 
-			message = sys.stdin.readline() 
-			server.send(message) 
-			sys.stdout.write("<You>") 
-			sys.stdout.write(message) 
-			sys.stdout.flush() 
-server.close() 
+print("Fermeture de la connexion")
+connexion_avec_serveur.close()

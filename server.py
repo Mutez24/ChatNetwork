@@ -10,6 +10,7 @@ import select
 #Import DB library
 import sqlite3
 
+
 clients_connectes = []
 
 def read_kbd_input(inputQueue):
@@ -44,7 +45,28 @@ def login_register(connexion_avec_client, conn):
     
 
     if(response == "1"):
-        pass
+        unconnected = True
+        while(unconnected):
+        
+            msg = b"Username :"
+            connexion_avec_client.send(msg)
+            username = connexion_avec_client.recv(1024)
+            username = username.decode()
+            msg = b"Password :"
+            connexion_avec_client.send(msg)
+            password = connexion_avec_client.recv(1024)
+            password = password.decode()
+            cursor = conn.execute("SELECT * FROM user WHERE USERNAME = '{}' AND PASSWORD = '{}'".format(username,password))
+            conn.commit()
+            if(cursor.fetchone() != None):
+                msg = b"Connexion reussie, bienvenue dans le chat public"
+                connexion_avec_client.send(msg)
+                unconnected = False
+            else:
+                msg = b"Wrong credentials "
+                connexion_avec_client.send(msg)
+            
+                
     if(response == "2"):
         unconnected = True
         while(unconnected):
@@ -60,13 +82,16 @@ def login_register(connexion_avec_client, conn):
                 conn.execute("INSERT INTO user (USERNAME,PASSWORD) VALUES ('{}','{}')".format(username,password))
                 conn.commit()
                 unconnected = False
+                msg = b"Creation de compte reussie, bienvenue dans le chat public"
+                connexion_avec_client.send(msg)
             except sqlite3.IntegrityError:
                 msg = b"Username already existing"
                 connexion_avec_client.send(msg)
+                
         
-        msg = b"Creation de compte reussie "
-        connexion_avec_client.send(msg)
-        clients_connectes.append(connexion_avec_client)
+        
+        
+    clients_connectes.append(connexion_avec_client)
 
 
 def main():

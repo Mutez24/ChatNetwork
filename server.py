@@ -10,8 +10,20 @@ import select
 #Import DB library
 import sqlite3
 
+# Import display library
+from datetime import datetime
 
+# Import Class and Manager files
+from ClientClass import *
+import client_functions
+import server_functions
+
+# Global variables
 clients_connectes = []
+EXIT_COMMAND = "#Exit" # Command to exit this program
+
+
+
 
 def read_kbd_input(inputQueue):
     print('Ready for keyboard input:')
@@ -32,7 +44,7 @@ def creation_database():
     print ("Table created successfully")
     return conn
 
-def login_register(connexion_avec_client, conn):
+def login_register(connexion_avec_client, infos_connexion,conn):
     global clients_connectes
     msg = b""
     response=""
@@ -90,9 +102,12 @@ def login_register(connexion_avec_client, conn):
                 
         
         
-        
-    clients_connectes.append(connexion_avec_client)
+    CurrentClient = Client(username,infos_connexion[0],infos_connexion[1],connexion_avec_client)
+    clients_connectes.append(CurrentClient)
+    print("\nUser '{}' connected at {} from @{}:{} \n".format(CurrentClient.username,datetime.now(),CurrentClient.IP,CurrentClient.port))
 
+
+                    
 
 def main():
     #Define global variables
@@ -107,7 +122,7 @@ def main():
     
 
 
-    EXIT_COMMAND = "#Exit" # Command to exit this program
+    
 
     #! DATABASE CREATION
     conn = creation_database()
@@ -120,7 +135,6 @@ def main():
     inputThread = threading.Thread(target=read_kbd_input, args=(inputQueue,), daemon=True)
     inputThread.start()
 
-    print("Le serveur écoute à présent sur le port {}".format(port))
 
     #TODO Main loop
     while (True):
@@ -128,7 +142,6 @@ def main():
         # Read keyboard inputs
         if (inputQueue.qsize() > 0):
             input_str = inputQueue.get()
-            
 
             if (input_str == EXIT_COMMAND):
                 print("Exiting serial terminal.")
@@ -148,7 +161,7 @@ def main():
             # On ajoute le socket connecté à la liste des clients
             #TODO Trucs à faire pour l'ajout de compte, la connexion et peut-être suppression (argpars peut être pas autorisés)
             #TODO Utiliser un multithread pour gérer ses éléments
-            (threading.Thread(target=login_register, args=(connexion_avec_client,conn,), daemon=True)).start()
+            (threading.Thread(target=login_register, args=(connexion_avec_client,infos_connexion,conn,), daemon=True)).start()
             
         
         # Maintenant, on écoute la liste des clients connectés
@@ -157,23 +170,30 @@ def main():
         # On enferme l'appel à select.select dans un bloc try
         # En effet, si la liste de clients connectés est vide, une exception
         # Peut être levée
-        clients_a_lire = []
+        
         try:
-            clients_a_lire, wlist, xlist = select.select(clients_connectes,[], [], 0.05)
+            sockets_a_lire, wlist, xlist = select.select(Client.Liste_Sockets(clients_connectes),[], [], 0.05)
+            clients_a_lire = Client.Liste_Sockets_Avec_Info(sockets_a_lire,clients_connectes)
         except select.error:
             pass
         else:
             # On parcourt la liste des clients à lire
             for client in clients_a_lire:
                 # Client est de type socket
-                msg_recu = client.recv(1024)
+                msg_recu = client.socket.recv(1024)
                 # Peut planter si le message contient des caractères spéciaux
                 msg_recu = msg_recu.decode()
-                print("user > {}".format(msg_recu)) #Affichage côté serveur
                 
-                for receveur in clients_connectes:
-                    if(client != receveur):
-                        receveur.send(msg_recu.encode()) #Envoi du msg reçu sur le channel public
+                
+
+                for receveur_client in clients_connectes:
+                    if(client != receveur_client):
+                        msg_a_envoyer = "{} > {}".format(client.username,msg_recu)
+                        receveur_client.socket.send(msg_a_envoyer.encode()) #Envoi du msg reçu sur le channel public
+                    else:
+                        print("{} @{}:{} | {} > {} \n".format(datetime.now(), receveur_client.IP, receveur_client.port,receveur_client.username, msg_recu)) #Affichage côté serveur
+
+                
                 #TODO Faire les checks pour fonctions clients
                 #! if msg_recu == 
         # Sleep for a short time to prevent this thread from sucking up all of your CPU resources on your PC.
@@ -181,7 +201,7 @@ def main():
     
     print("Fermeture des connexions")
     for client in clients_connectes:
-        client.close()
+        client.socket.close()
     connexion_principale.close()
     print("End.")
 

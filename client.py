@@ -30,7 +30,7 @@ def main():
 	print("Connexion établie avec le serveur sur le port {}".format(port))
 
 	msg_a_envoyer = b""
-	while msg_a_envoyer != b"fin":
+	while msg_a_envoyer != b"#Exit":
 		
 		if (inputQueue.qsize() > 0):
 			

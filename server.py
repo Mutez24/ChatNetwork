@@ -159,8 +159,6 @@ def main():
         for connexion in connexions_demandees:
             connexion_avec_client, infos_connexion = connexion.accept()
             # On ajoute le socket connecté à la liste des clients
-            #TODO Trucs à faire pour l'ajout de compte, la connexion et peut-être suppression (argpars peut être pas autorisés)
-            #TODO Utiliser un multithread pour gérer ses éléments
             (threading.Thread(target=login_register, args=(connexion_avec_client,infos_connexion,conn,), daemon=True)).start()
             
         
@@ -179,7 +177,7 @@ def main():
         else:
             # On parcourt la liste des clients à lire
             for client in clients_a_lire:
-                # Client est de type socket
+                # Client est de type Client
                 msg_recu = client.socket.recv(1024)
                 # Peut planter si le message contient des caractères spéciaux
                 msg_recu = msg_recu.decode()

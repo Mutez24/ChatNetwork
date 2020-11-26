@@ -1,3 +1,26 @@
+'''
+ Server function (command line):
+1) #Help (list command)
+2) #Exit (server shutdown)
+3) #Kill <user>
+4) #ListU (list of users in a server)
+5) #ListF (list of files in a server)
+6) # Private <user> (private chat with another user)
+7) #Alert <all users>
+• Client function (command line):
+1) #Help (list command)
+#! 2) #Exit (client exit)
+3) #ListU (list of users in a server)
+4) #ListF (list of files in a server)
+5) #TrfU (Upload file transfer to a server)
+6) #TrfD (transfer Download file to a server)
+• # Private <user> (private chat with another user)
+• #Public (back to the public)
+1) #Ring <user> (notification if the user is logged in)
+2) Your original orders
+
+'''
+
 # Import sockets libraries
 import socket
 import select

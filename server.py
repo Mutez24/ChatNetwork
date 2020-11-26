@@ -184,18 +184,18 @@ def main():
                 # Peut planter si le message contient des caractères spéciaux
                 msg_recu = msg_recu.decode()
                 
-                
+                #! Check client functions
+                if(msg_recu[0] == "#"):
+                    client_functions.Check_client_functions(msg_recu, client, clients_connectes)
+                else:                                               
+                    for receveur_client in clients_connectes:
+                        if(client != receveur_client):
+                            msg_a_envoyer = "{} > {}".format(client.username,msg_recu)
+                            receveur_client.socket.send(msg_a_envoyer.encode()) #Envoi du msg reçu sur le channel public
+                        else:
+                            print("{} @{}:{} | {} > {} \n".format(datetime.now(), client.IP, client.port, client.username, msg_recu)) #Affichage côté serveur
 
-                for receveur_client in clients_connectes:
-                    if(client != receveur_client):
-                        msg_a_envoyer = "{} > {}".format(client.username,msg_recu)
-                        receveur_client.socket.send(msg_a_envoyer.encode()) #Envoi du msg reçu sur le channel public
-                    else:
-                        print("{} @{}:{} | {} > {} \n".format(datetime.now(), receveur_client.IP, receveur_client.port,receveur_client.username, msg_recu)) #Affichage côté serveur
-
-                
-                #TODO Faire les checks pour fonctions clients
-                #! if msg_recu == 
+                    
         # Sleep for a short time to prevent this thread from sucking up all of your CPU resources on your PC.
         time.sleep(0.01) 
     

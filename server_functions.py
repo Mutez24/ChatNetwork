@@ -11,6 +11,10 @@
 # Import sockets libraries
 import socket
 
+#Import display libraries
+from datetime import datetime
+
+
 #! Commandes serveur
 EXIT_SERVER = "#Exit" #Command used by server to shutdown
 HELP_SERVER = "#Help" #Command used by server to get help
@@ -35,9 +39,11 @@ def Server_Kill(input_server, clients_connectes,connexion_principale):
             if (client.username == input_server.split(' ')[1]):
                 client.socket.send(b"Closing")
                 client.socket.close()
+                clients_connectes.remove(client)
+                print("User {} was kicked by server at {} from @{}:{}".format(client.username, datetime.now(), client.IP, client.port))
             else:
-                pass
-
+                msg = "User {} was kicked by server".format(input_server.split(' ')[1])
+                client.socket.send(msg.encode())
     else :
         raise Exception
 

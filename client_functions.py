@@ -5,7 +5,11 @@ import select
 # Import display library
 from datetime import datetime
 
+#! Commandes clients
 EXIT_CLIENT = "#Exit" #Command used by clients to leave
+
+#TODO TOUJOURS mettre les 3 mêmes paramètres dans chaque fonction même si on ne se sert pas des 3
+#TODO En effet les appels de fonctions sont définis par défaut avec ces paramètres dans la fonction Check_client_functions
 
 def Client_Exit (client,msg_recu, clients_connectes):
     if(msg_recu == "#Exit"):

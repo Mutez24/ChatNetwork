@@ -34,6 +34,8 @@ def read_kbd_input(inputQueue):
         # Enqueue this input string.
         inputQueue.put(input_str)
 
+
+
 def creation_database():
     conn = sqlite3.connect('database_chat.db',check_same_thread=False)
     print ("Opened database successfully")
@@ -83,10 +85,14 @@ def login_register(connexion_avec_client, infos_connexion,conn):
         unconnected = True
         while(unconnected):
             try:
-                msg = b"Username :"
-                connexion_avec_client.send(msg)
-                username = connexion_avec_client.recv(1024)
-                username = username.decode()
+                username = " "
+                while(' ' in username):
+                    msg = b"Username :"
+                    connexion_avec_client.send(msg)
+                    username = connexion_avec_client.recv(1024)
+                    username = username.decode()
+                    if (' ' in username):
+                        connexion_avec_client.send(b"Username must not contain spaces\n")
                 msg = b"Password :"
                 connexion_avec_client.send(msg)
                 password = connexion_avec_client.recv(1024)
@@ -143,23 +149,25 @@ def main():
         if (inputQueue.qsize() > 0):
             input_str = inputQueue.get()
 
-            if (input_str == EXIT_COMMAND):
-                print("Exiting serial terminal.")
-                break # exit the while loop
-            
-            # Insert your code here to do whatever you want with the input_str.
-
+            #TODO Insert your code here to do whatever you want with the input_str.
+            if (input_str[0] == "#"):
+                if (server_functions.Check_server_functions(input_str,clients_connectes,connexion_principale) == "exit"):              
+                    break
+                
         #! The rest of your program goes here.
         
         # On va vérifier que de nouveaux clients ne demandent pas à se connecter
         # Pour cela, on écoute la connexion_principale en lecture
         # On attend maximum 50ms
-        connexions_demandees, wlist, xlist = select.select([connexion_principale], [], [], 0.05)
+        try:
+            connexions_demandees, wlist, xlist = select.select([connexion_principale], [], [], 0.05)
         
-        for connexion in connexions_demandees:
-            connexion_avec_client, infos_connexion = connexion.accept()
-            # On ajoute le socket connecté à la liste des clients
-            (threading.Thread(target=login_register, args=(connexion_avec_client,infos_connexion,conn,), daemon=True)).start()
+            for connexion in connexions_demandees:
+                connexion_avec_client, infos_connexion = connexion.accept()
+                # On ajoute le socket connecté à la liste des clients
+                (threading.Thread(target=login_register, args=(connexion_avec_client,infos_connexion,conn,), daemon=True)).start()
+        except :
+            pass
             
         
         # Maintenant, on écoute la liste des clients connectés
@@ -172,7 +180,7 @@ def main():
         try:
             sockets_a_lire, wlist, xlist = select.select(Client.Liste_Sockets(clients_connectes),[], [], 0.05)
             clients_a_lire = Client.Liste_Sockets_Avec_Info(sockets_a_lire,clients_connectes)
-        except select.error:
+        except:
             pass
         else:
             # On parcourt la liste des clients à lire
@@ -195,13 +203,7 @@ def main():
 
                     
         # Sleep for a short time to prevent this thread from sucking up all of your CPU resources on your PC.
-        time.sleep(0.01) 
-    
-    print("Fermeture des connexions")
-    for client in clients_connectes:
-        client.socket.close()
-    connexion_principale.close()
-    print("End.")
+        time.sleep(0.01)
 
 # If you run this Python file directly (ex: via `python3 this_filename.py`), do the following:
 if (__name__ == '__main__'): 

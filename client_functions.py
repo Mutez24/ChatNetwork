@@ -1,12 +1,4 @@
 '''
- Server function (command line):
-1) #Help (list command)
-2) #Exit (server shutdown)
-3) #Kill <user>
-4) #ListU (list of users in a server)
-5) #ListF (list of files in a server)
-6) # Private <user> (private chat with another user)
-7) #Alert <all users>
 • Client function (command line):
 1) #Help (list command)
 #! 2) #Exit (client exit)

@@ -27,33 +27,24 @@ def main():
 	connexion_avec_serveur = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 	connexion_avec_serveur.connect((hote, port))
 	connexion_avec_serveur.settimeout(0.05)
-	print("Connexion établie avec le serveur sur le port {}".format(port))
 
 	msg_a_envoyer = b""
 	while msg_a_envoyer != b"#Exit":
-		
-		if (inputQueue.qsize() > 0):
-			
-			msg_a_envoyer = inputQueue.get()
-			
-			msg_a_envoyer = msg_a_envoyer.encode()
-			
+		if (inputQueue.qsize() > 0):			
+			msg_a_envoyer = inputQueue.get()			
+			msg_a_envoyer = msg_a_envoyer.encode()			
 			connexion_avec_serveur.send(msg_a_envoyer)
-			
 				
-		
-		try:
-			
+		try:			
 			msg_recu = connexion_avec_serveur.recv(1024)
-			
-			print(msg_recu.decode()) # Là encore, peut planter s'il y a des accents
-		except socket.timeout:
-			
+			msg_recu = msg_recu.decode()
+
+			if (msg_recu == "Closing"): #ce message ne peut pas être envoyé par un client car un message envoyé par un client contient au minimum le username et un chevron
+				break		
+			print(msg_recu) # Là encore, peut planter s'il y a des accents
+		except socket.timeout:	
 			pass
 		
-		
-		
-
 	print("Fermeture de la connexion")
 	connexion_avec_serveur.close()
 

@@ -47,12 +47,25 @@ def Server_Kill(input_server, clients_connectes,connexion_principale):
     else :
         raise Exception
 
+def Server_Help(input_server, clients_connectes,connexion_principale):
+    if(input_server == HELP_SERVER):
+        msg = "You can find a list of available commands below : \n \n \
+        #Help (list command) \n \
+        #Exit (server shutdown) \n \
+        #Kill <user> (kick <user> from server) \n \
+        #ListU (list of users in a server) \n \
+        #ListF (list of files in a server) \n \
+        #Private <user> (private chat with another user) \n \
+        #Alert <msg> (send msg to all users)"
 
+        print(msg)
+    else:
+        raise Exception
 
 options = {
         EXIT_SERVER : Server_Exit,
         KILL_SERVER : Server_Kill,
-        #HELP_SERVER : Server_Help
+        HELP_SERVER : Server_Help,
     }
 
 def Check_server_functions(input_server, clients_connectes,connexion_principale):

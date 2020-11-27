@@ -42,9 +42,19 @@ def Client_Exit (client,msg_recu, clients_connectes):
         
 def Client_Help (client,msg_recu, clients_connectes):
     if(msg_recu == HELP_CLIENT):
-        pass
-    
-    else :
+        msg = "You can find a list of available commands below : \n \n \
+        #Help (list command) \n \
+        #Exit (exit chat) \n \
+        #ListF (list of files in a server) \n \
+        #ListU (list of users in a server) \n \
+        #TrfU (Upload file transfer to a server) \n \
+        #TrfD (transfer Download file to a server) \n \
+        #Private <user> (private chat with another user) \n \
+        #Public (back to the public) \n \
+        #Ring <user> (notification if the user is logged in)"
+
+        client.socket.send(msg.encode())
+    else:
         raise Exception
 
 

@@ -39,7 +39,8 @@ def main():
 			msg_recu = connexion_avec_serveur.recv(1024)
 			msg_recu = msg_recu.decode()
 
-			if (msg_recu == "Closing"): #ce message ne peut pas être envoyé par un client car un message envoyé par un client contient au minimum le username et un chevron
+			if (msg_recu == "Server shutdown" or msg_recu == "You were kicked by server"): #ce message ne peut pas être envoyé par un client car un message envoyé par un client contient au minimum le username et un chevron
+				print(msg_recu)
 				break		
 			print(msg_recu) # Là encore, peut planter s'il y a des accents
 		except socket.timeout:	

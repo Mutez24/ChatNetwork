@@ -46,7 +46,7 @@ def creation_database():
     print ("Table created successfully")
     return conn
 
-def login_register(connexion_avec_client, infos_connexion,conn):
+def login_register(connexion_avec_client, infos_connexion,conn,clients_connectes):
     global clients_connectes
     msg = b""
     response=""
@@ -60,12 +60,22 @@ def login_register(connexion_avec_client, infos_connexion,conn):
 
     if(response == "1"):
         unconnected = True
+        bool client_already_connected = False
         while(unconnected):
-        
             msg = b"Username :"
             connexion_avec_client.send(msg)
             username = connexion_avec_client.recv(1024)
             username = username.decode()
+            for client in clients_connectes:
+                if (client.username == username):
+                    client_already_connected = True
+                    break
+            if (client_already_connected):
+                #TODO a completer
+
+
+
+
             msg = b"Password :"
             connexion_avec_client.send(msg)
             password = connexion_avec_client.recv(1024)
@@ -164,8 +174,8 @@ def main():
         
             for connexion in connexions_demandees:
                 connexion_avec_client, infos_connexion = connexion.accept()
-                # On ajoute le socket connecté à la liste des clients
-                (threading.Thread(target=login_register, args=(connexion_avec_client,infos_connexion,conn,), daemon=True)).start()
+                # On lance un thread qui va demander au client ses identifiants ou de se créer un compte
+                (threading.Thread(target=login_register, args=(connexion_avec_client,infos_connexion,conn,clients_connectes,), daemon=True)).start()
         except :
             pass
             

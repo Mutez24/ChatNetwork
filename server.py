@@ -46,75 +46,76 @@ def creation_database():
     print ("Table created successfully")
     return conn
 
-def login_register(connexion_avec_client, infos_connexion,conn,clients_connectes):
+def login_register(connexion_avec_client, infos_connexion,conn):
     global clients_connectes
     msg = b""
     response=""
-    while(response != "1" and response != "2"):
-        msg = b"Bienvenue, appuyez sur 1 pour vous connecter ou 2 pour creer un compte"
-        connexion_avec_client.send(msg)
-        msg = connexion_avec_client.recv(1024)
-        response = msg.decode()
-    
-    
+    client_already_connected = True
 
-    if(response == "1"):
-        unconnected = True
-        bool client_already_connected = False
-        while(unconnected):
-            msg = b"Username :"
+    while(client_already_connected):
+        while(response != "1" and response != "2"):
+            msg = b"Bienvenue, appuyez sur 1 pour vous connecter ou 2 pour creer un compte"
             connexion_avec_client.send(msg)
-            username = connexion_avec_client.recv(1024)
-            username = username.decode()
-            for client in clients_connectes:
-                if (client.username == username):
-                    client_already_connected = True
+            msg = connexion_avec_client.recv(1024)
+            response = msg.decode()
+        
+
+        if(response == "1"):
+            unconnected = True
+            client_already_connected = False
+            while(unconnected):
+                msg = b"Username :"
+                connexion_avec_client.send(msg)
+                username = connexion_avec_client.recv(1024)
+                username = username.decode()
+                for client in clients_connectes:
+                    if (client.username == username):
+                        client_already_connected = True
+                        msg = b"User already connected, try another account if you have one or create a new one if you really want to be connected. You will now be redirected to the welcome message\n\n"
+                        connexion_avec_client.send(msg)
+                        break
+                if (client_already_connected):
+                    response = "" #on reinitialise la reponse sinon on ne re-rentrera pas dans le premier while verifiant la reponse du user
                     break
-            if (client_already_connected):
-                #TODO a completer
-
-
-
-
-            msg = b"Password :"
-            connexion_avec_client.send(msg)
-            password = connexion_avec_client.recv(1024)
-            password = password.decode()
-            cursor = conn.execute("SELECT * FROM user WHERE USERNAME = '{}' AND PASSWORD = '{}'".format(username,password))
-            conn.commit()
-            if(cursor.fetchone() != None):
-                msg = b"Connexion reussie, bienvenue dans le chat public"
-                connexion_avec_client.send(msg)
-                unconnected = False
-            else:
-                msg = b"Wrong credentials "
-                connexion_avec_client.send(msg)
-            
-                
-    if(response == "2"):
-        unconnected = True
-        while(unconnected):
-            try:
-                username = " "
-                while(' ' in username):
-                    msg = b"Username :"
-                    connexion_avec_client.send(msg)
-                    username = connexion_avec_client.recv(1024)
-                    username = username.decode()
-                    if (' ' in username):
-                        connexion_avec_client.send(b"Username must not contain spaces\n")
                 msg = b"Password :"
                 connexion_avec_client.send(msg)
                 password = connexion_avec_client.recv(1024)
                 password = password.decode()
-                conn.execute("INSERT INTO user (USERNAME,PASSWORD) VALUES ('{}','{}')".format(username,password))
+                cursor = conn.execute("SELECT * FROM user WHERE USERNAME = '{}' AND PASSWORD = '{}'".format(username,password))
                 conn.commit()
-                unconnected = False
-                msg = b"Creation de compte reussie, bienvenue dans le chat public"
-                connexion_avec_client.send(msg)
-            except sqlite3.IntegrityError:
-                msg = b"Username already existing"
-                connexion_avec_client.send(msg)
+                if(cursor.fetchone() != None):
+                    msg = b"Connexion reussie, bienvenue dans le chat public"
+                    connexion_avec_client.send(msg)
+                    unconnected = False
+                else:
+                    msg = b"Wrong credentials "
+                    connexion_avec_client.send(msg)
+                
+                    
+        if(response == "2"):
+            unconnected = True
+            while(unconnected):
+                try:
+                    username = " "
+                    while(' ' in username):
+                        msg = b"Username :"
+                        connexion_avec_client.send(msg)
+                        username = connexion_avec_client.recv(1024)
+                        username = username.decode()
+                        if (' ' in username):
+                            connexion_avec_client.send(b"Username must not contain spaces\n")
+                    msg = b"Password :"
+                    connexion_avec_client.send(msg)
+                    password = connexion_avec_client.recv(1024)
+                    password = password.decode()
+                    conn.execute("INSERT INTO user (USERNAME,PASSWORD) VALUES ('{}','{}')".format(username,password))
+                    conn.commit()
+                    unconnected = False
+                    msg = b"Creation de compte reussie, bienvenue dans le chat public"
+                    connexion_avec_client.send(msg)
+                except sqlite3.IntegrityError:
+                    msg = b"Username already existing"
+                    connexion_avec_client.send(msg)
                 
         
         
@@ -153,19 +154,11 @@ def main():
 
 
     #TODO Main loop
-    while (True):
-
-        # Read keyboard inputs
-        if (inputQueue.qsize() > 0):
-            input_str = inputQueue.get()
-
-            #TODO Insert your code here to do whatever you want with the input_str.
-            if (input_str[0] == "#"):
-                if (server_functions.Check_server_functions(input_str,clients_connectes,connexion_principale) == "exit"):              
-                    break
-                
-        #! The rest of your program goes here.
+    while (True):                
         
+        #! le bloc en dessous du commentaire rouge (Read keyboard inputs) était là  
+
+
         # On va vérifier que de nouveaux clients ne demandent pas à se connecter
         # Pour cela, on écoute la connexion_principale en lecture
         # On attend maximum 50ms
@@ -175,11 +168,21 @@ def main():
             for connexion in connexions_demandees:
                 connexion_avec_client, infos_connexion = connexion.accept()
                 # On lance un thread qui va demander au client ses identifiants ou de se créer un compte
-                (threading.Thread(target=login_register, args=(connexion_avec_client,infos_connexion,conn,clients_connectes,), daemon=True)).start()
+                (threading.Thread(target=login_register, args=(connexion_avec_client,infos_connexion,conn,), daemon=True)).start()
         except :
             pass
-            
+
+
+        #! Read keyboard inputs
+        if (inputQueue.qsize() > 0):
+            input_str = inputQueue.get()
+
+            #TODO Insert your code here to do whatever you want with the input_str.
+            if (input_str[0] == "#"):
+                if (server_functions.Check_server_functions(input_str,clients_connectes,connexion_principale,connexions_demandees) == "exit"):              
+                    break
         
+
         # Maintenant, on écoute la liste des clients connectés
         # Les clients renvoyés par select sont ceux devant être lus (recv)
         # On attend là encore 50ms maximum

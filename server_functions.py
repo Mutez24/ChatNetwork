@@ -20,20 +20,26 @@ EXIT_SERVER = "#Exit" #Command used by server to shutdown
 HELP_SERVER = "#Help" #Command used by server to get help
 KILL_SERVER = "#Kill" #Command used by server to kill user terminal
 
-def Server_Exit(input_server, clients_connectes,connexion_principale):
+def Server_Exit(input_server, clients_connectes,connexion_principale,connexions_demandees):
     if(input_server == EXIT_SERVER):
         print("Server closing...")
         for client in clients_connectes:
             client.socket.send(b"Server shutdown")
             client.socket.close()
+        
+        ''' test pour close les users qui sont en train de se connecter ou creer un compte quand le serveur shutdown. Si fonctionne pas retirer connexion_demandees 
+        for client in connexions_demandees:
+            client.socket.send(b"Server shutdown")
+            client.socket.close()
+        '''
         connexion_principale.close()
         return "exit"
 
     else :
         raise Exception
 
-def Server_Kill(input_server, clients_connectes,connexion_principale):
-    bool client_kicked_or_not = False
+def Server_Kill(input_server, clients_connectes,connexion_principale,connexions_demandees):
+    client_kicked_or_not = False
     if(len(input_server.split(' ')) == 2): #on peut se permettre de verifier s'il n'y a que deux termes car le username ne peut pas contenir d'espace (regle qu'on a fixée)
         for client in clients_connectes:
             if (client.username == input_server.split(' ')[1]):
@@ -54,7 +60,7 @@ def Server_Kill(input_server, clients_connectes,connexion_principale):
     else :
         raise Exception
 
-def Server_Help(input_server, clients_connectes,connexion_principale):
+def Server_Help(input_server, clients_connectes,connexion_principale,connexions_demandees):
     if(input_server == HELP_SERVER):
         msg = "You can find a list of available commands below : \n \n \
         #Help (list command) \n \
@@ -75,11 +81,11 @@ options = {
         HELP_SERVER : Server_Help,
     }
 
-def Check_server_functions(input_server, clients_connectes,connexion_principale):
+def Check_server_functions(input_server, clients_connectes,connexion_principale,connexions_demandees):
     commande = input_server.split(' ')[0]
 
     try:
-        return options[commande](input_server, clients_connectes,connexion_principale)
+        return options[commande](input_server, clients_connectes,connexion_principale,connexions_demandees)
     except :
         msg = "Command not found, try using #Help"
         print(msg)

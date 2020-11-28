@@ -1,12 +1,12 @@
 '''
 • Server function (command line):
-1) #Help (list command)
+#! 1) #Help (list command)
 #! 2) #Exit (server shutdown)
 #! 3) #Kill <user>
-4) #ListU (list of users in a server)
+#! 4) #ListU (list of users in a server)
 5) #ListF (list of files in a server)
 6) # Private <user> (private chat with another user)
-7) #Alert <all users>
+#! 7) #Alert <all users>
 '''
 # Import sockets libraries
 import socket
@@ -19,6 +19,8 @@ from datetime import datetime
 EXIT_SERVER = "#Exit" #Command used by server to shutdown
 HELP_SERVER = "#Help" #Command used by server to get help
 KILL_SERVER = "#Kill" #Command used by server to kill user terminal
+LISTU_SERVER = "#ListU" #Command used by the server to display all the connected users
+ALERT_SERVER = "#Alert"
 
 def Server_Exit(input_server, clients_connectes,connexion_principale,connexions_demandees):
     if(input_server == EXIT_SERVER):
@@ -47,7 +49,7 @@ def Server_Kill(input_server, clients_connectes,connexion_principale,connexions_
                 client.socket.send(b"You were kicked by server")
                 client.socket.close()
                 clients_connectes.remove(client)
-                print("User {} was kicked by server at {} from @{}:{}".format(client.username, datetime.now(), client.IP, client.port))
+                print("User '{}' was kicked by server at {} from @{}:{}".format(client.username, datetime.now(), client.IP, client.port))
 
                 for client_not_kicked in clients_connectes:
                     if (client_not_kicked != client):
@@ -75,10 +77,37 @@ def Server_Help(input_server, clients_connectes,connexion_principale,connexions_
     else:
         raise Exception
 
+def Server_ListU(input_server, clients_connectes,connexion_principale,connexions_demandees):
+    print("The following users are connected to the server :")
+    if(input_server == LISTU_SERVER):
+        for client in clients_connectes:
+            print("   - User '{}' from @{}:{}".format(client.username, client.IP, client.port))
+    else:
+        raise Exception
+
+def Server_Alert(input_server, clients_connectes,connexion_principale,connexions_demandees):
+    if(len(input_server.split(' ')) > 1): #si l'input c'est pas seulement #Alert sinon il n'y a pas de message
+        msg =""
+        for word in input_server.split(' '):
+            msg+= word + " "
+        msg = msg.lstrip(input_server.split(' ')[0]) #On retire la #command
+        msg = "MESSAGE FROM SERVER :" +msg
+
+        for client in clients_connectes:
+            client.socket.send(msg.encode())
+
+    if (len(input_server.split(' ')) == 1):
+        print("There is nothing to send. If you want to send something, write a message after the command")
+
+    else:
+        raise Exception
+
 options = {
         EXIT_SERVER : Server_Exit,
         KILL_SERVER : Server_Kill,
         HELP_SERVER : Server_Help,
+        LISTU_SERVER : Server_ListU,
+        ALERT_SERVER : Server_Alert,
     }
 
 def Check_server_functions(input_server, clients_connectes,connexion_principale,connexions_demandees):

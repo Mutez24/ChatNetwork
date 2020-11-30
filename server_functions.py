@@ -5,7 +5,7 @@
 #! 3) #Kill <user>
 #! 4) #ListU (list of users in a server)
 5) #ListF (list of files in a server)
-6) # Private <user> (private chat with another user)
+6) #Private <user> (private chat with another user)
 #! 7) #Alert <all users>
 '''
 # Import sockets libraries
@@ -20,7 +20,8 @@ EXIT_SERVER = "#Exit" #Command used by server to shutdown
 HELP_SERVER = "#Help" #Command used by server to get help
 KILL_SERVER = "#Kill" #Command used by server to kill user terminal
 LISTU_SERVER = "#ListU" #Command used by the server to display all the connected users
-ALERT_SERVER = "#Alert"
+ALERT_SERVER = "#Alert" #Command used by the server to send a message to all users
+PRIVATE_SERVER = "#Private" ##Command used by the server to send a message to a particular user
 
 def Server_Exit(input_server, clients_connectes,connexion_principale,connexions_demandees):
     if(input_server == EXIT_SERVER):
@@ -86,7 +87,7 @@ def Server_ListU(input_server, clients_connectes,connexion_principale,connexions
         raise Exception
 
 def Server_Alert(input_server, clients_connectes,connexion_principale,connexions_demandees):
-    if(len(input_server.split(' ')) > 1): #si l'input c'est pas seulement #Alert sinon il n'y a pas de message
+    if(len(input_server.split(' ')) > 1): #si l'input c'est pas seulement #Alert car dans ce cas il n'y a pas de message
         msg =""
         for word in input_server.split(' '):
             msg+= word + " "
@@ -102,12 +103,24 @@ def Server_Alert(input_server, clients_connectes,connexion_principale,connexions
     else:
         raise Exception
 
+def Server_Private(input_server, clients_connectes,connexion_principale,connexions_demandees):
+    if(len(input_server.split(' ')) > 1): #si l'input c'est pas seulement #Private car dans ce cas il n'y a pas de user avec qui parler en privé
+        client_name = input_server.split(' ')[1]
+        return ("private_conv", True, client_name)
+
+    else:
+        raise Exception
+
+
+
+
 options = {
         EXIT_SERVER : Server_Exit,
         KILL_SERVER : Server_Kill,
         HELP_SERVER : Server_Help,
         LISTU_SERVER : Server_ListU,
         ALERT_SERVER : Server_Alert,
+        PRIVATE_SERVER : Server_Private,
     }
 
 def Check_server_functions(input_server, clients_connectes,connexion_principale,connexions_demandees):

@@ -130,6 +130,10 @@ def main():
     #Define global variables
     global clients_connectes
 
+    #Define local variables
+    (server_private_string, private_bool, client_name_private) = ("",False,"")
+    end_private_message = "end"
+
     #! Set up socket variables
     hote = ''
     port = 12800
@@ -179,9 +183,26 @@ def main():
 
             #TODO Insert your code here to do whatever you want with the input_str.
             if (input_str[0] == "#"):
-                if (server_functions.Check_server_functions(input_str,clients_connectes,connexion_principale,connexions_demandees) == "exit"):              
-                    break
+                try:
+                    if (server_functions.Check_server_functions(input_str,clients_connectes,connexion_principale,connexions_demandees) == "exit"):              
+                        break
+                    
+                    (server_private_string, private_bool, client_name_private) = server_functions.Check_server_functions(input_str,clients_connectes,connexion_principale,connexions_demandees)
+                    if (server_private_string == "private_conv"):
+                        print("You are now speaking to '{}' ".format(client_name_private))
+                except:
+                    pass
         
+
+            #! Check if the server wants to talk to a client
+            if (private_bool):
+                for client in clients_connectes:
+                    if(client.username == client_name_private):
+                        if (input_str == end_private_message):
+                            print("You ended the conversation with '{}' ".format(client_name_private))
+                            (server_private_string, private_bool, client_name_private) = ("",False,"")
+                        else:
+                            client.socket.send(input_str.encode())
 
         # Maintenant, on écoute la liste des clients connectés
         # Les clients renvoyés par select sont ceux devant être lus (recv)
@@ -213,8 +234,7 @@ def main():
                             receveur_client.socket.send(msg_a_envoyer.encode()) #Envoi du msg reçu sur le channel public
                         else:
                             print("{} @{}:{} | {} > {} \n".format(datetime.now(), client.IP, client.port, client.username, msg_recu)) #Affichage côté serveur
-
-                    
+                   
         # Sleep for a short time to prevent this thread from sucking up all of your CPU resources on your PC.
         time.sleep(0.01)
 

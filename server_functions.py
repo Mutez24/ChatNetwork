@@ -5,7 +5,7 @@
 #! 3) #Kill <user>
 #! 4) #ListU (list of users in a server)
 5) #ListF (list of files in a server)
-6) #Private <user> (private chat with another user)
+#TODO Vincent 6) #Private <user> (private chat with another user)
 #! 7) #Alert <all users>
 '''
 # Import sockets libraries

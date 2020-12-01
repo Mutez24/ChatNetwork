@@ -1,14 +1,15 @@
 '''
 • Client function (command line):
-1) #Help (list command)
+#! 1) #Help (list command)
 #! 2) #Exit (client exit)
-3) #ListU (list of users in a server)
-4) #ListF (list of files in a server)
-5) #TrfU (Upload file transfer to a server)
-6) #TrfD (transfer Download file to a server)
-• # Private <user> (private chat with another user)
-• #Public (back to the public)
-1) #Ring <user> (notification if the user is logged in)
+#TODO VALOT 3) #ListU (list of users in a server)
+#TODO Rémi 4) #ListF (list of files in a server)
+#TODO Rémi 5) #TrfU (Upload file transfer to a server)
+#TODO Rémi 6) #TrfD (transfer Download file to a server)
+#TODO VALOT • # Private <user> (private chat with another user)
+#TODO VALOT • #Public (back to the public)
+#TODO MUTEZ 1) #Ring <user> (notification if the user is logged in)
+#TODO MUTEZ Limit size of messages (280 characters)
 2) Your original orders
 
 '''

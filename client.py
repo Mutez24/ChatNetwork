@@ -31,7 +31,8 @@ def main():
 	msg_a_envoyer = b""
 	while msg_a_envoyer != b"#Exit":
 		if (inputQueue.qsize() > 0):			
-			msg_a_envoyer = inputQueue.get()			
+			msg_a_envoyer = inputQueue.get()
+			#Fct check character + si ok encryption			
 			msg_a_envoyer = msg_a_envoyer.encode()			
 			connexion_avec_serveur.send(msg_a_envoyer)
 				

@@ -20,7 +20,7 @@ import server_functions
 
 # Global variables
 clients_connectes = []
-EXIT_COMMAND = "#Exit" # Command to exit this program
+
 
 
 

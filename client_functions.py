@@ -24,6 +24,9 @@ from datetime import datetime
 #! Commandes clients
 EXIT_CLIENT = "#Exit" #Command used by clients to leave
 HELP_CLIENT = "#Help" #Command used by clients to get help
+LISTU_CLIENT = "#ListU" #Command used by clients to get the list of other connected users
+PRIVATE_CLIENT = "#Private" #Command used by clients to chat privately with one another
+PUBLIC_CLIENT = "#Public" #Command used by clients to get back to public chat after using private chat
 #TODO TOUJOURS mettre les 3 mêmes paramètres dans chaque fonction même si on ne se sert pas des 3
 #TODO En effet les appels de fonctions sont définis par défaut avec ces paramètres dans la fonction Check_client_functions
 
@@ -58,13 +61,26 @@ def Client_Help (client,msg_recu, clients_connectes):
     else:
         raise Exception
 
+def Client_ListU (client,msg_recu, clients_connectes):
+    if(msg_recu == LISTU_CLIENT):
+        msg=("List of users (except you of course): \n") 
+        count_user=1
 
+        for element in clients_connectes:
+            if (client != element):
+                msg+=("User {}: {} @{}:{}\n".format(count_user, element.username, element.IP, element.port))
+                count_user+=1
+        msg+="\n"
+        client.socket.send(msg.encode())
+    else :
+        raise Exception
 
 
 
 options = {
         EXIT_CLIENT : Client_Exit,
-        HELP_CLIENT : Client_Help
+        HELP_CLIENT : Client_Help,
+        LISTU_CLIENT : Client_ListU
     }
 
 def Check_client_functions(msg_recu, client, clients_connectes):

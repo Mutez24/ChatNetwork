@@ -20,8 +20,9 @@ import server_functions
 
 # Global variables
 clients_connectes = []
-
-
+(returned_string, client_name_private) = ("","")
+private_bool = False
+end_private_message = "end"
 
 
 
@@ -33,8 +34,6 @@ def read_kbd_input(inputQueue):
         
         # Enqueue this input string.
         inputQueue.put(input_str)
-
-
 
 def creation_database():
     conn = sqlite3.connect('database_chat.db',check_same_thread=False)
@@ -123,16 +122,23 @@ def login_register(connexion_avec_client, infos_connexion,conn):
     clients_connectes.append(CurrentClient)
     print("\nUser '{}' connected at {} from @{}:{} \n".format(CurrentClient.username,datetime.now(),CurrentClient.IP,CurrentClient.port))
 
-
+def private_server_client(clients_connectes,input_str):
+    global returned_string, private_bool, client_name_private
+    for client in clients_connectes:
+        if(client.username == client_name_private):
+            if (input_str == end_private_message):
+                print("You ended the conversation with '{}' ".format(client_name_private))
+                (returned_string, client_name_private) = ("","")
+                private_bool = False
+            else:
+                msg = "PRIVATE MESSAGE FROM SERVER : " + input_str
+                client.socket.send(msg.encode())
                     
 
 def main():
     #Define global variables
-    global clients_connectes
+    global clients_connectes, returned_string, private_bool, client_name_private
 
-    #Define local variables
-    (server_private_string, private_bool, client_name_private) = ("",False,"")
-    end_private_message = "end"
 
     #! Set up socket variables
     hote = ''
@@ -140,9 +146,6 @@ def main():
     connexion_principale = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     connexion_principale.bind((hote, port))
     connexion_principale.listen(50)
-    
-
-
     
 
     #! DATABASE CREATION
@@ -159,9 +162,6 @@ def main():
 
     #TODO Main loop
     while (True):                
-        
-        #! le bloc en dessous du commentaire rouge (Read keyboard inputs) était là  
-
 
         # On va vérifier que de nouveaux clients ne demandent pas à se connecter
         # Pour cela, on écoute la connexion_principale en lecture
@@ -181,28 +181,21 @@ def main():
         if (inputQueue.qsize() > 0):
             input_str = inputQueue.get()
 
-            #TODO Insert your code here to do whatever you want with the input_str.
-            if (input_str[0] == "#"):
-                try:
-                    if (server_functions.Check_server_functions(input_str,clients_connectes,connexion_principale,connexions_demandees) == "exit"):              
-                        break
-                    
-                    (server_private_string, private_bool, client_name_private) = server_functions.Check_server_functions(input_str,clients_connectes,connexion_principale,connexions_demandees)
-                    if (server_private_string == "private_conv"):
-                        print("You are now speaking to '{}' ".format(client_name_private))
-                except:
-                    pass
-        
-
             #! Check if the server wants to talk to a client
             if (private_bool):
-                for client in clients_connectes:
-                    if(client.username == client_name_private):
-                        if (input_str == end_private_message):
-                            print("You ended the conversation with '{}' ".format(client_name_private))
-                            (server_private_string, private_bool, client_name_private) = ("",False,"")
-                        else:
-                            client.socket.send(input_str.encode())
+                private_server_client(clients_connectes,input_str)
+
+            #TODO Insert your code here to do whatever you want with the input_str.
+            try: #S'il n'y a pas de try except, le code va planter si on appuie juste sur entrée
+                if (input_str[0] == "#"):
+                    (returned_string, client_name_private) = server_functions.Check_server_functions(input_str,clients_connectes,connexion_principale,connexions_demandees)
+                    if (returned_string == "exit"):              
+                        break            
+                    if (returned_string == "private_conv"):
+                        private_bool = True
+                        print("You are now speaking to '{}' ".format(client_name_private))
+            except:
+                pass
 
         # Maintenant, on écoute la liste des clients connectés
         # Les clients renvoyés par select sont ceux devant être lus (recv)

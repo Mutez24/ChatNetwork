@@ -5,7 +5,7 @@
 #! 3) #Kill <user>
 #! 4) #ListU (list of users in a server)
 5) #ListF (list of files in a server)
-#TODO Vincent 6) #Private <user> (private chat with another user)
+#! 6) #Private <user> (private chat with another user)
 #! 7) #Alert <all users>
 '''
 # Import sockets libraries
@@ -36,17 +36,17 @@ def Server_Exit(input_server, clients_connectes,connexion_principale,connexions_
             client.socket.close()
         '''
         connexion_principale.close()
-        return "exit"
+        return ("exit", "")
 
     else :
         raise Exception
 
 def Server_Kill(input_server, clients_connectes,connexion_principale,connexions_demandees):
-    client_kicked_or_not = False
+    client_connected_existed = False
     if(len(input_server.split(' ')) == 2): #on peut se permettre de verifier s'il n'y a que deux termes car le username ne peut pas contenir d'espace (regle qu'on a fixée)
         for client in clients_connectes:
             if (client.username == input_server.split(' ')[1]):
-                client_kicked_or_not = True
+                client_connected_existed = True
                 client.socket.send(b"You were kicked by server")
                 client.socket.close()
                 clients_connectes.remove(client)
@@ -56,38 +56,32 @@ def Server_Kill(input_server, clients_connectes,connexion_principale,connexions_
                     if (client_not_kicked != client):
                         msg = "User '{}' was kicked by server".format(input_server.split(' ')[1])
                         client_not_kicked.socket.send(msg.encode())
+    
+    if (len(input_server.split(' ')) == 1):
+        print("Please write a client name after the command")
 
-    if (not client_kicked_or_not):
+    if (not client_connected_existed and len(input_server.split(' ')) != 1):
         print("Client not connected or not existing")
 
-    else :
-        raise Exception
-
 def Server_Help(input_server, clients_connectes,connexion_principale,connexions_demandees):
-    if(input_server == HELP_SERVER):
-        msg = "You can find a list of available commands below : \n \n \
-        #Help (list command) \n \
-        #Exit (server shutdown) \n \
-        #Kill <user> (kick <user> from server) \n \
-        #ListU (list of users in a server) \n \
-        #ListF (list of files in a server) \n \
-        #Private <user> (private chat with another user) \n \
-        #Alert <msg> (send msg to all users)"
+    msg = "You can find a list of available commands below : \n \n \
+    #Help (list command) \n \
+    #Exit (server shutdown) \n \
+    #Kill <user> (kick <user> from server) \n \
+    #ListU (list of users in a server) \n \
+    #ListF (list of files in a server) \n \
+    #Private <user> (private chat with another user) \n \
+    #Alert <msg> (send msg to all users)"
 
-        print(msg)
-    else:
-        raise Exception
+    print(msg)
 
 def Server_ListU(input_server, clients_connectes,connexion_principale,connexions_demandees):
     print("The following users are connected to the server :")
-    if(input_server == LISTU_SERVER):
-        for client in clients_connectes:
-            print("   - User '{}' from @{}:{}".format(client.username, client.IP, client.port))
-    else:
-        raise Exception
+    for client in clients_connectes:
+        print("   - User '{}' from @{}:{}".format(client.username, client.IP, client.port))
 
 def Server_Alert(input_server, clients_connectes,connexion_principale,connexions_demandees):
-    if(len(input_server.split(' ')) > 1): #si l'input c'est pas seulement #Alert car dans ce cas il n'y a pas de message
+    if(len(input_server.split(' ')) != 1): #si l'input c'est pas seulement #Alert car dans ce cas il n'y a pas de message
         msg =""
         for word in input_server.split(' '):
             msg+= word + " "
@@ -97,21 +91,27 @@ def Server_Alert(input_server, clients_connectes,connexion_principale,connexions
         for client in clients_connectes:
             client.socket.send(msg.encode())
 
-    if (len(input_server.split(' ')) == 1):
+    else:
         print("There is nothing to send. If you want to send something, write a message after the command")
 
-    else:
-        raise Exception
 
 def Server_Private(input_server, clients_connectes,connexion_principale,connexions_demandees):
-    if(len(input_server.split(' ')) > 1): #si l'input c'est pas seulement #Private car dans ce cas il n'y a pas de user avec qui parler en privé
-        client_name = input_server.split(' ')[1]
-        return ("private_conv", True, client_name)
+    client_connected_existed = False
+    if(len(input_server.split(' ')) == 2): #on peut se permettre de verifier s'il n'y a que deux termes car le username ne peut pas contenir d'espace (regle qu'on a fixée)
+        for client in clients_connectes:
+            if (client.username == input_server.split(' ')[1]):
+                client_connected_existed = True
+                client_name = input_server.split(' ')[1]
+        
+        return ("private_conv", client_name)
+    
+    if (len(input_server.split(' ')) == 1):
+        print("Please write a client name after the command")
 
-    else:
-        raise Exception
+    if (not client_connected_existed and len(input_server.split(' ')) != 1):
+        print("Client not connected or not existing")
 
-
+    
 
 
 options = {

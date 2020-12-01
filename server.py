@@ -93,6 +93,7 @@ def login_register(connexion_avec_client, infos_connexion,conn):
                     
         if(response == "2"):
             unconnected = True
+            client_already_connected = False
             while(unconnected):
                 try:
                     username = " "

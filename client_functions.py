@@ -2,7 +2,7 @@
 • Client function (command line):
 #! 1) #Help (list command)
 #! 2) #Exit (client exit)
-#TODO VALOT 3) #ListU (list of users in a server)
+#! 3) #ListU (list of users in a server)
 #TODO Rémi 4) #ListF (list of files in a server)
 #TODO Rémi 5) #TrfU (Upload file transfer to a server)
 #TODO Rémi 6) #TrfD (transfer Download file to a server)
@@ -75,12 +75,46 @@ def Client_ListU (client,msg_recu, clients_connectes):
     else :
         raise Exception
 
+def Client_Private(client,msg_recu, clients_connectes):
+    client_connected_existed = False
+    if(len(msg_recu.split(' ')) == 2): #on peut se permettre de verifier s'il n'y a que deux termes car le username ne peut pas contenir d'espace (regle qu'on a fixée)
+        for other_client in clients_connectes:
+            if (other_client.username == msg_recu.split(' ')[1]):
+                client_connected_existed = True
+                msg = "You entered a private chat with {}.\n".format(client.username) 
+                msg+="If you want to get back in the public chat, type '#Public'."
+                other_client.room=client.username
+                client.room=other_client.username
+                other_client.socket.send(msg.encode())
+    
+    elif (len(msg_recu.split(' ')) == 1):
+        print("Please write a user's name after the command")
+
+    elif (not client_connected_existed and len(msg_recu.split(' ')) != 1):
+        print("User not connected or not existing")
+    
+    else:
+        raise Exception
+
+def Client_Public(client,msg_recu, clients_connectes):
+    if(msg_recu==PUBLIC_CLIENT):
+        if(client.room != "public"):
+            for other_client in clients_connectes:
+                if(other_client.username==client.room):
+                    msg="{} left the private chat.".format(client.username)
+                    other_client.socket.send(msg.encode())
+            client.room="public"
+    else:
+        raise Exception
+                            
 
 
 options = {
         EXIT_CLIENT : Client_Exit,
         HELP_CLIENT : Client_Help,
-        LISTU_CLIENT : Client_ListU
+        LISTU_CLIENT : Client_ListU,
+        PRIVATE_CLIENT : Client_Private,
+        PUBLIC_CLIENT : Client_Public
     }
 
 def Check_client_functions(msg_recu, client, clients_connectes):

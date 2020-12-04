@@ -102,7 +102,7 @@ def Server_Private(input_server, clients_connectes,connexion_principale,connexio
             if (client.username == input_server.split(' ')[1]):
                 client_connected_existed = True
                 client_name = input_server.split(' ')[1]
-        
+         
         return ("private_conv", client_name)
     
     if (len(input_server.split(' ')) == 1):

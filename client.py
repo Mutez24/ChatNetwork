@@ -14,7 +14,7 @@ def read_kbd_input(inputQueue):
         
         # Enqueue this input string.
         inputQueue.put(input_str)
-        
+
 
 def main():
 	inputQueue = queue.Queue()

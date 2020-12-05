@@ -153,7 +153,7 @@ def Client_Upload(client,msg_recu,clients_connectes,client_en_envoi_fichier):
                 sum_bytes+= len(bytes_read)
                 client.socket.settimeout(None) # On retire le timeout, il ne sert que pour le transfert de fichiers
             except :
-                
+                client.socket.settimeout(None)
                 break  
             # write to the file the bytes we just received
             

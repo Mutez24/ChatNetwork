@@ -21,16 +21,26 @@ import select
 # Import display library
 from datetime import datetime
 
+#Import files libraries
+import os
+import random
+import string
+import time
+
+# Import threading libraries
+import threading
+
 #! Commandes clients
 EXIT_CLIENT = "#Exit" #Command used by clients to leave
 HELP_CLIENT = "#Help" #Command used by clients to get help
 LISTU_CLIENT = "#ListU" #Command used by clients to get the list of other connected users
 PRIVATE_CLIENT = "#Private" #Command used by clients to chat privately with one another
 PUBLIC_CLIENT = "#Public" #Command used by clients to get back to public chat after using private chat
+UPLOAD_CLIENT = "#TrfU" #Command used by clients to upload files
 #TODO TOUJOURS mettre les 3 mêmes paramètres dans chaque fonction même si on ne se sert pas des 3
 #TODO En effet les appels de fonctions sont définis par défaut avec ces paramètres dans la fonction Check_client_functions
 
-def Client_Exit (client,msg_recu, clients_connectes):
+def Client_Exit (client,msg_recu, clients_connectes,client_en_envoi_fichier):
     if(msg_recu == EXIT_CLIENT):
         msg_client="'{}' left the chat".format(client.username)
         print("{} @{}:{} | '{}' has left the chat \n".format(datetime.now(), client.IP, client.port, client.username)) 
@@ -44,14 +54,14 @@ def Client_Exit (client,msg_recu, clients_connectes):
     else :
         raise Exception
         
-def Client_Help (client,msg_recu, clients_connectes):
+def Client_Help (client,msg_recu, clients_connectes,client_en_envoi_fichier):
     if(msg_recu == HELP_CLIENT):
         msg = "You can find a list of available commands below : \n \n \
         #Help (list command) \n \
         #Exit (exit chat) \n \
         #ListF (list of files in a server) \n \
         #ListU (list of users in a server) \n \
-        #TrfU (Upload file transfer to a server) \n \
+        #TrfU <filename if in current directory / absolute path> \n \
         #TrfD (transfer Download file to a server) \n \
         #Private <user> (private chat with another user) \n \
         #Public (back to the public) \n \
@@ -61,7 +71,7 @@ def Client_Help (client,msg_recu, clients_connectes):
     else:
         raise Exception
 
-def Client_ListU (client,msg_recu, clients_connectes):
+def Client_ListU (client,msg_recu, clients_connectes,client_en_envoi_fichier):
     if(msg_recu == LISTU_CLIENT):
         msg=("List of users (except you of course): \n") 
         count_user=1
@@ -75,7 +85,7 @@ def Client_ListU (client,msg_recu, clients_connectes):
     else :
         raise Exception
 
-def Client_Private(client,msg_recu, clients_connectes):
+def Client_Private(client,msg_recu, clients_connectes,client_en_envoi_fichier):
     client_connected_existed = False
     if(len(msg_recu.split(' ')) == 2): #on peut se permettre de verifier s'il n'y a que deux termes car le username ne peut pas contenir d'espace (regle qu'on a fixée)
         for other_client in clients_connectes:
@@ -96,7 +106,7 @@ def Client_Private(client,msg_recu, clients_connectes):
     else:
         raise Exception
 
-def Client_Public(client,msg_recu, clients_connectes):
+def Client_Public(client,msg_recu, clients_connectes,client_en_envoi_fichier):
     if(msg_recu==PUBLIC_CLIENT):
         if(client.room != "public"):
             for other_client in clients_connectes:
@@ -107,21 +117,74 @@ def Client_Public(client,msg_recu, clients_connectes):
     else:
         raise Exception
                             
+def Client_Upload(client,msg_recu,clients_connectes,client_en_envoi_fichier):
+    filename, filesize = msg_recu.split("<>")
+    filename = filename.split(" ",1)[1]
+    filename = os.path.basename(filename)
+    filesize = int(filesize)
+    #Start File-receiver Thread 
+    client_en_envoi_fichier.append(client)
+    client.socket.send(b"OK")
+  
 
+    filename_sans_extension, extension = filename.split(".")
+    filename_for_save = "Files/{}_{}.{}".format(filename_sans_extension,''.join(random.choices(string.ascii_letters + string.digits, k=10)), extension)
+    #Ajouter un code à la fin du nom de base du fichier afin d'éviter des remplacements de fichier si plusieurs ont le même nom
+    #threading.Thread(target=Thread_File_Receiver, args=(filename,filesize,client,client_en_envoi_fichier,)).start()
+    sum_bytes=0
+    percent=0
+    with open(filename_for_save, "wb") as f:
+        while(True):
+            # read 1024 bytes from the socket (receive)
+            try:
+                percent = (int) (sum_bytes/filesize)*100
+                print("", end=f"\r {filename} envoyé par {client.username} reçu: {percent} %")
+                client.socket.settimeout(0.5)
+                bytes_read = client.socket.recv(1024)
+                sum_bytes+= len(bytes_read)
+                client.socket.settimeout(None) # On retire le timeout, il ne sert que pour le transfert de fichiers
+            except :
+                
+                break  
+            # write to the file the bytes we just received
+            
+            
+            f.write(bytes_read)
+        print()
+    client_en_envoi_fichier.remove(client)
+
+def Thread_File_Receiver(filename,filesize,client,client_en_envoi_fichier):
+    # start receiving the file from the socket
+    # and writing to the file stream
+    progress = tqdm.tqdm(range(filesize), f"Receiving {filename}", unit="B", unit_scale=True, unit_divisor=1024)
+    with open(filename, "wb") as f:
+        for _ in progress:
+            # read 1024 bytes from the socket (receive)
+            bytes_read = client.socket.recv(1024)
+            if not bytes_read:    
+                # nothing is received
+                # file transmitting is done
+                break
+            # write to the file the bytes we just received
+            f.write(bytes_read)
+            # update the progress bar
+            progress.update(len(bytes_read))
+    client_en_envoi_fichier.remove(client)
 
 options = {
         EXIT_CLIENT : Client_Exit,
         HELP_CLIENT : Client_Help,
         LISTU_CLIENT : Client_ListU,
         PRIVATE_CLIENT : Client_Private,
-        PUBLIC_CLIENT : Client_Public
+        PUBLIC_CLIENT : Client_Public,
+        UPLOAD_CLIENT : Client_Upload
     }
 
-def Check_client_functions(msg_recu, client, clients_connectes):
+def Check_client_functions(msg_recu, client, clients_connectes,client_en_envoi_fichier):
     commande = msg_recu.split(' ')[0]
 
     try:
-        options[commande](client,msg_recu, clients_connectes)
+        options[commande](client,msg_recu, clients_connectes,client_en_envoi_fichier)
     except :
         msg = b"Command not found, try using #Help"
         client.socket.send(msg)

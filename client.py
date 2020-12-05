@@ -5,6 +5,10 @@ import threading
 import queue
 import time
 
+from cyphering import *
+key = "salut"
+
+
 def read_kbd_input(inputQueue):
     print('Ready for keyboard input:')
     while (True):
@@ -33,11 +37,13 @@ def main():
 		if (inputQueue.qsize() > 0):			
 			msg_a_envoyer = inputQueue.get()
 			#Fct check character + si ok encryption			
-			msg_a_envoyer = msg_a_envoyer.encode()			
-			connexion_avec_serveur.send(msg_a_envoyer)
+			msg_a_envoyer = msg_a_envoyer.encode()
+			Send_Message(msg_a_envoyer, key, connexion_avec_serveur)			
+			#connexion_avec_serveur.send(msg_a_envoyer)
 				
-		try:			
-			msg_recu = connexion_avec_serveur.recv(1024)
+		try:	
+			msg_recu = Receive_Message(key, connexion_avec_serveur)		
+			#msg_recu = connexion_avec_serveur.recv(1024)
 			msg_recu = msg_recu.decode()
 
 			if (msg_recu == "Server shutdown" or msg_recu == "You were kicked by server"): #ce message ne peut pas être envoyé par un client car un message envoyé par un client contient au minimum le username et un chevron

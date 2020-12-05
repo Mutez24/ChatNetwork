@@ -21,6 +21,9 @@ import select
 # Import display library
 from datetime import datetime
 
+from cyphering import *
+key = "salut"
+
 #! Commandes clients
 EXIT_CLIENT = "#Exit" #Command used by clients to leave
 HELP_CLIENT = "#Help" #Command used by clients to get help
@@ -38,7 +41,8 @@ def Client_Exit (client,msg_recu, clients_connectes):
 
         for element in clients_connectes:
             if (client != element):
-                element.socket.send(msg_client.encode())
+                Send_Message(msg_client.encode(), key, element.socket)
+                #element.socket.send(msg_client.encode())
         clients_connectes.remove(client)
         client.socket.close()
     
@@ -58,7 +62,8 @@ def Client_Help (client,msg_recu, clients_connectes):
         #Public (back to the public) \n \
         #Ring <user> (notification if the user is logged in)"
 
-        client.socket.send(msg.encode())
+        Send_Message(msg.encode(), key, client.socket)
+        #client.socket.send(msg.encode())
     else:
         raise Exception
 
@@ -72,7 +77,8 @@ def Client_ListU (client,msg_recu, clients_connectes):
                 msg+=("User {}: {} @{}:{}\n".format(count_user, element.username, element.IP, element.port))
                 count_user+=1
         msg+="\n"
-        client.socket.send(msg.encode())
+        Send_Message(msg.encode(), key, client.socket)
+        #client.socket.send(msg.encode())
     else :
         raise Exception
 
@@ -86,13 +92,16 @@ def Client_Private(client,msg_recu, clients_connectes):
                 msg+="If you want to get back in the public chat, type '#Public'."
                 other_client.room=client.username
                 client.room=other_client.username
-                other_client.socket.send(msg.encode())
+                Send_Message(msg.encode(), key, other_client.socket)
+                #other_client.socket.send(msg.encode())
     
     if (len(msg_recu.split(' ')) == 1):
-        client.socket.send(b"Please write a user's name after the command")
+        Send_Message(b"Please write a user's name after the command", key, client.socket)
+        #client.socket.send(b"Please write a user's name after the command")
 
     if (client_connected_existed == False and len(msg_recu.split(' ')) != 1):
-        client.socket.send(b"User not connected or not existing")
+        Send_Message(b"User not connected or not existing", key, client.socket)
+        #client.socket.send(b"User not connected or not existing")
 
 
 def Client_Public(client,msg_recu, clients_connectes):
@@ -101,7 +110,8 @@ def Client_Public(client,msg_recu, clients_connectes):
             for other_client in clients_connectes:
                 if(other_client.username==client.room):
                     msg="'{}' left the private chat.".format(client.username)
-                    other_client.socket.send(msg.encode())
+                    Send_Message(msg.encode(), key, other_client.socket)
+                    #other_client.socket.send(msg.encode())
             client.room="public"
     else:
         raise Exception
@@ -113,13 +123,16 @@ def Client_Ring(client,msg_recu, clients_connectes):
             if (other_client.username == msg_recu.split(' ')[1]):
                 client_target_existed = True
                 msg = "\nThe user : '{}' try to reach you.\n".format(client.username) 
-                other_client.socket.send(msg.encode())
+                Send_Message(msg.encode(), key, other_client.socket)
+                #other_client.socket.send(msg.encode())
     
     if (len(msg_recu.split(' ')) == 1):
-        client.socket.send(b"Please write a user's name after the command")
+        Send_Message(b"Please write a user's name after the command", key, client.socket)
+        #client.socket.send(b"Please write a user's name after the command")
 
     if (client_target_existed == False and len(msg_recu.split(' ')) != 1):
-        client.socket.send(b"User you tried to ring is not connected or not existing")
+        Send_Message(b"User you tried to ring is not connected or not existing", key, client.socket)
+        #client.socket.send(b"User you tried to ring is not connected or not existing")
 
 options = {
         EXIT_CLIENT : Client_Exit,
@@ -137,6 +150,7 @@ def Check_client_functions(msg_recu, client, clients_connectes):
         options[commande](client,msg_recu, clients_connectes)
     except :
         msg = b"Command not found, try using #Help"
+        Send_Message(msg, key, client.socket)
         client.socket.send(msg)
     
 

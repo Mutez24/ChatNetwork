@@ -17,12 +17,14 @@ from datetime import datetime
 from ClientClass import *
 import client_functions
 import server_functions
+from cyphering import *
 
 # Global variables
 clients_connectes = []
 (returned_string, client_name_private) = ("","")
 private_bool = False
 end_private_message = "end"
+key = "salut"
 
 
 
@@ -54,8 +56,10 @@ def login_register(connexion_avec_client, infos_connexion,conn):
     while(client_already_connected):
         while(response != "1" and response != "2"):
             msg = b"Bienvenue, appuyez sur 1 pour vous connecter ou 2 pour creer un compte"
-            connexion_avec_client.send(msg)
-            msg = connexion_avec_client.recv(1024)
+            Send_Message(msg, key, connexion_avec_client)
+            #connexion_avec_client.send(msg)
+            msg = Receive_Message(key, connexion_avec_client)
+            #msg = connexion_avec_client.recv(1024)
             response = msg.decode()
         
 
@@ -64,31 +68,38 @@ def login_register(connexion_avec_client, infos_connexion,conn):
             client_already_connected = False
             while(unconnected):
                 msg = b"Username :"
-                connexion_avec_client.send(msg)
-                username = connexion_avec_client.recv(1024)
+                Send_Message(msg, key, connexion_avec_client)
+                #connexion_avec_client.send(msg)
+                username = Receive_Message(key, connexion_avec_client)
+                #username = connexion_avec_client.recv(1024)
                 username = username.decode()
                 for client in clients_connectes:
                     if (client.username == username):
                         client_already_connected = True
                         msg = b"User already connected, try another account if you have one or create a new one if you really want to be connected. You will now be redirected to the welcome message\n\n"
-                        connexion_avec_client.send(msg)
+                        Send_Message(msg, key, connexion_avec_client)
+                        #connexion_avec_client.send(msg)
                         break
                 if (client_already_connected):
                     response = "" #on reinitialise la reponse sinon on ne re-rentrera pas dans le premier while verifiant la reponse du user
                     break
                 msg = b"Password :"
-                connexion_avec_client.send(msg)
-                password = connexion_avec_client.recv(1024)
+                Send_Message(msg, key, connexion_avec_client)
+                #connexion_avec_client.send(msg)
+                password = Receive_Message(key, connexion_avec_client)
+                #password = connexion_avec_client.recv(1024)
                 password = password.decode()
                 cursor = conn.execute("SELECT * FROM user WHERE USERNAME = '{}' AND PASSWORD = '{}'".format(username,password))
                 conn.commit()
                 if(cursor.fetchone() != None):
                     msg = b"Connexion reussie, bienvenue dans le chat public"
-                    connexion_avec_client.send(msg)
+                    Send_Message(msg, key, connexion_avec_client)
+                    #connexion_avec_client.send(msg)
                     unconnected = False
                 else:
                     msg = b"Wrong credentials "
-                    connexion_avec_client.send(msg)
+                    Send_Message(msg, key, connexion_avec_client)
+                    #connexion_avec_client.send(msg)
                 
                     
         if(response == "2"):
@@ -99,23 +110,30 @@ def login_register(connexion_avec_client, infos_connexion,conn):
                     username = " "
                     while(' ' in username):
                         msg = b"Username :"
-                        connexion_avec_client.send(msg)
-                        username = connexion_avec_client.recv(1024)
+                        Send_Message(msg, key, connexion_avec_client)
+                        #connexion_avec_client.send(msg)
+                        username = Receive_Message(key, connexion_avec_client)
+                        #username = connexion_avec_client.recv(1024)
                         username = username.decode()
                         if (' ' in username):
-                            connexion_avec_client.send(b"Username must not contain spaces\n")
+                            Send_Message(b"Username must not contain spaces\n", key, connexion_avec_client)
+                            #connexion_avec_client.send(b"Username must not contain spaces\n")
                     msg = b"Password :"
-                    connexion_avec_client.send(msg)
-                    password = connexion_avec_client.recv(1024)
+                    Send_Message(msg, key, connexion_avec_client)
+                    #connexion_avec_client.send(msg)
+                    password = Receive_Message(key, connexion_avec_client)
+                    #password = connexion_avec_client.recv(1024)
                     password = password.decode()
                     conn.execute("INSERT INTO user (USERNAME,PASSWORD) VALUES ('{}','{}')".format(username,password))
                     conn.commit()
                     unconnected = False
                     msg = b"Creation de compte reussie, bienvenue dans le chat public"
-                    connexion_avec_client.send(msg)
+                    Send_Message(msg, key, connexion_avec_client)
+                    #connexion_avec_client.send(msg)
                 except sqlite3.IntegrityError:
                     msg = b"Username already existing"
-                    connexion_avec_client.send(msg)
+                    Send_Message(msg, key, connexion_avec_client)
+                    #connexion_avec_client.send(msg)
                 
         
         
@@ -133,7 +151,8 @@ def private_server_client(clients_connectes,input_str):
                 private_bool = False
             else:
                 msg = "PRIVATE MESSAGE FROM SERVER : " + input_str
-                client.socket.send(msg.encode())
+                Send_Message(msg.encode(), key, client.socket)
+                #client.socket.send(msg.encode())
 
 def main():
     #Define global variables
@@ -214,7 +233,8 @@ def main():
             # On parcourt la liste des clients à lire
             for client in clients_a_lire:
                 # Client est de type Client
-                msg_recu = client.socket.recv(1024)
+                msg_recu = Receive_Message(key, client.socket)
+                #msg_recu = client.socket.recv(1024)
                 # Peut planter si le message contient des caractères spéciaux
                 msg_recu = msg_recu.decode()
                 
@@ -226,14 +246,16 @@ def main():
                     for other_client in clients_connectes:
                         if(other_client.username==client.room):
                             msg_a_envoyer = "{} > {}".format(client.username,msg_recu)
-                            other_client.socket.send(msg_a_envoyer.encode())
+                            Send_Message(msg_a_envoyer.encode(), key, other_client.socket)
+                            #other_client.socket.send(msg_a_envoyer.encode())
                         else:
                             print("{} @{}:{} to @{}:{} | '{}' to '{}' > {} \n".format(datetime.now(), client.IP, client.port, other_client.IP, other_client.port, client.username, other_client.username, msg_recu)) #Affichage côté serveur
                 else:                                               
                     for receveur_client in clients_connectes:
                         if(client != receveur_client):
                             msg_a_envoyer = "'{}' > {}".format(client.username,msg_recu)
-                            receveur_client.socket.send(msg_a_envoyer.encode()) #Envoi du msg reçu sur le channel public
+                            Send_Message(msg_a_envoyer.encode(), key, receveur_client.socket)
+                            #receveur_client.socket.send(msg_a_envoyer.encode()) #Envoi du msg reçu sur le channel public
                         else:
                             print("{} @{}:{} | '{}' > {} \n".format(datetime.now(), client.IP, client.port, client.username, msg_recu)) #Affichage côté serveur
                 

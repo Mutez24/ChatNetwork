@@ -81,27 +81,25 @@ def Client_Private(client,msg_recu, clients_connectes):
         for other_client in clients_connectes:
             if (other_client.username == msg_recu.split(' ')[1]):
                 client_connected_existed = True
-                msg = "You entered a private chat with {}.\n".format(client.username) 
+                msg = "\nYou entered a private chat with '{}'.\n".format(client.username) 
                 msg+="If you want to get back in the public chat, type '#Public'."
                 other_client.room=client.username
                 client.room=other_client.username
                 other_client.socket.send(msg.encode())
     
-    elif (len(msg_recu.split(' ')) == 1):
-        print("Please write a user's name after the command")
+    if (len(msg_recu.split(' ')) == 1):
+        client.socket.send(b"Please write a user's name after the command")
 
-    elif (not client_connected_existed and len(msg_recu.split(' ')) != 1):
-        print("User not connected or not existing")
-    
-    else:
-        raise Exception
+    if (client_connected_existed == False and len(msg_recu.split(' ')) != 1):
+        client.socket.send(b"User not connected or not existing")
+
 
 def Client_Public(client,msg_recu, clients_connectes):
     if(msg_recu==PUBLIC_CLIENT):
         if(client.room != "public"):
             for other_client in clients_connectes:
                 if(other_client.username==client.room):
-                    msg="{} left the private chat.".format(client.username)
+                    msg="'{}' left the private chat.".format(client.username)
                     other_client.socket.send(msg.encode())
             client.room="public"
     else:

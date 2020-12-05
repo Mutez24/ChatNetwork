@@ -193,7 +193,8 @@ def main():
                         break            
                     if (returned_string == "private_conv"):
                         private_bool = True
-                        print("You are now speaking to '{}' ".format(client_name_private))
+                        print("You are now speaking to '{}'\n".format(client_name_private))
+                        print("Write 'end' to end the private conversation")
             except:
                 pass
 
@@ -224,14 +225,17 @@ def main():
                 elif(client.room!="public"):
                     for other_client in clients_connectes:
                         if(other_client.username==client.room):
-                            other_client.socket.send(msg_recu.encode())
+                            msg_a_envoyer = "{} > {}".format(client.username,msg_recu)
+                            other_client.socket.send(msg_a_envoyer.encode())
+                        else:
+                            print("{} @{}:{} to @{}:{} | '{}' to '{}' > {} \n".format(datetime.now(), client.IP, client.port, other_client.IP, other_client.port, client.username, other_client.username, msg_recu)) #Affichage côté serveur
                 else:                                               
                     for receveur_client in clients_connectes:
                         if(client != receveur_client):
-                            msg_a_envoyer = "{} > {}".format(client.username,msg_recu)
+                            msg_a_envoyer = "'{}' > {}".format(client.username,msg_recu)
                             receveur_client.socket.send(msg_a_envoyer.encode()) #Envoi du msg reçu sur le channel public
                         else:
-                            print("{} @{}:{} | {} > {} \n".format(datetime.now(), client.IP, client.port, client.username, msg_recu)) #Affichage côté serveur
+                            print("{} @{}:{} | '{}' > {} \n".format(datetime.now(), client.IP, client.port, client.username, msg_recu)) #Affichage côté serveur
                 
 
         # Sleep for a short time to prevent this thread from sucking up all of your CPU resources on your PC.

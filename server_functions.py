@@ -102,13 +102,12 @@ def Server_Private(input_server, clients_connectes,connexion_principale,connexio
             if (client.username == input_server.split(' ')[1]):
                 client_connected_existed = True
                 client_name = input_server.split(' ')[1]
-         
-        return ("private_conv", client_name)
+                return ("private_conv", client_name)
     
     if (len(input_server.split(' ')) == 1):
         print("Please write a client name after the command")
 
-    if (not client_connected_existed and len(input_server.split(' ')) != 1):
+    if (client_connected_existed == False and len(input_server.split(' ')) != 1):
         print("Client not connected or not existing")
 
     

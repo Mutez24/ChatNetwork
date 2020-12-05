@@ -37,6 +37,7 @@ LISTU_CLIENT = "#ListU" #Command used by clients to get the list of other connec
 PRIVATE_CLIENT = "#Private" #Command used by clients to chat privately with one another
 PUBLIC_CLIENT = "#Public" #Command used by clients to get back to public chat after using private chat
 UPLOAD_CLIENT = "#TrfU" #Command used by clients to upload files
+RING_USER = "#Ring" #Command used by clients to ring a user if he's logged in
 #TODO TOUJOURS mettre les 3 mêmes paramètres dans chaque fonction même si on ne se sert pas des 3
 #TODO En effet les appels de fonctions sont définis par défaut avec ces paramètres dans la fonction Check_client_functions
 
@@ -91,27 +92,25 @@ def Client_Private(client,msg_recu, clients_connectes,client_en_envoi_fichier):
         for other_client in clients_connectes:
             if (other_client.username == msg_recu.split(' ')[1]):
                 client_connected_existed = True
-                msg = "You entered a private chat with {}.\n".format(client.username) 
+                msg = "\nYou entered a private chat with '{}'.\n".format(client.username) 
                 msg+="If you want to get back in the public chat, type '#Public'."
                 other_client.room=client.username
                 client.room=other_client.username
                 other_client.socket.send(msg.encode())
     
-    elif (len(msg_recu.split(' ')) == 1):
-        print("Please write a user's name after the command")
+    if (len(msg_recu.split(' ')) == 1):
+        client.socket.send(b"Please write a user's name after the command")
 
-    elif (not client_connected_existed and len(msg_recu.split(' ')) != 1):
-        print("User not connected or not existing")
-    
-    else:
-        raise Exception
+    if (client_connected_existed == False and len(msg_recu.split(' ')) != 1):
+        client.socket.send(b"User not connected or not existing")
+
 
 def Client_Public(client,msg_recu, clients_connectes,client_en_envoi_fichier):
     if(msg_recu==PUBLIC_CLIENT):
         if(client.room != "public"):
             for other_client in clients_connectes:
                 if(other_client.username==client.room):
-                    msg="{} left the private chat.".format(client.username)
+                    msg="'{}' left the private chat.".format(client.username)
                     other_client.socket.send(msg.encode())
             client.room="public"
     else:
@@ -170,6 +169,20 @@ def Thread_File_Receiver(filename,filesize,client,client_en_envoi_fichier):
             # update the progress bar
             progress.update(len(bytes_read))
     client_en_envoi_fichier.remove(client)
+def Client_Ring(client,msg_recu, clients_connectes):
+    client_target_existed = False
+    if(len(msg_recu.split(' ')) == 2): #on peut se permettre de verifier s'il n'y a que deux termes car le username ne peut pas contenir d'espace (regle qu'on a fixée)
+        for other_client in clients_connectes:
+            if (other_client.username == msg_recu.split(' ')[1]):
+                client_target_existed = True
+                msg = "\nThe user : '{}' try to reach you.\n".format(client.username) 
+                other_client.socket.send(msg.encode())
+    
+    if (len(msg_recu.split(' ')) == 1):
+        client.socket.send(b"Please write a user's name after the command")
+
+    if (client_target_existed == False and len(msg_recu.split(' ')) != 1):
+        client.socket.send(b"User you tried to ring is not connected or not existing")
 
 options = {
         EXIT_CLIENT : Client_Exit,
@@ -178,6 +191,7 @@ options = {
         PRIVATE_CLIENT : Client_Private,
         PUBLIC_CLIENT : Client_Public,
         UPLOAD_CLIENT : Client_Upload
+        RING_USER : Client_Ring
     }
 
 def Check_client_functions(msg_recu, client, clients_connectes,client_en_envoi_fichier):

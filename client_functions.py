@@ -27,6 +27,7 @@ HELP_CLIENT = "#Help" #Command used by clients to get help
 LISTU_CLIENT = "#ListU" #Command used by clients to get the list of other connected users
 PRIVATE_CLIENT = "#Private" #Command used by clients to chat privately with one another
 PUBLIC_CLIENT = "#Public" #Command used by clients to get back to public chat after using private chat
+RING_USER = "#Ring" #Command used by clients to ring a user if he's logged in
 #TODO TOUJOURS mettre les 3 mêmes paramètres dans chaque fonction même si on ne se sert pas des 3
 #TODO En effet les appels de fonctions sont définis par défaut avec ces paramètres dans la fonction Check_client_functions
 
@@ -105,14 +106,28 @@ def Client_Public(client,msg_recu, clients_connectes):
     else:
         raise Exception
                             
+def Client_Ring(client,msg_recu, clients_connectes):
+    client_target_existed = False
+    if(len(msg_recu.split(' ')) == 2): #on peut se permettre de verifier s'il n'y a que deux termes car le username ne peut pas contenir d'espace (regle qu'on a fixée)
+        for other_client in clients_connectes:
+            if (other_client.username == msg_recu.split(' ')[1]):
+                client_target_existed = True
+                msg = "\nThe user : '{}' try to reach you.\n".format(client.username) 
+                other_client.socket.send(msg.encode())
+    
+    if (len(msg_recu.split(' ')) == 1):
+        client.socket.send(b"Please write a user's name after the command")
 
+    if (client_target_existed == False and len(msg_recu.split(' ')) != 1):
+        client.socket.send(b"User you tried to ring is not connected or not existing")
 
 options = {
         EXIT_CLIENT : Client_Exit,
         HELP_CLIENT : Client_Help,
         LISTU_CLIENT : Client_ListU,
         PRIVATE_CLIENT : Client_Private,
-        PUBLIC_CLIENT : Client_Public
+        PUBLIC_CLIENT : Client_Public,
+        RING_USER : Client_Ring
     }
 
 def Check_client_functions(msg_recu, client, clients_connectes):

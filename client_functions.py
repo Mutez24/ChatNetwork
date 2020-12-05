@@ -190,7 +190,7 @@ options = {
         LISTU_CLIENT : Client_ListU,
         PRIVATE_CLIENT : Client_Private,
         PUBLIC_CLIENT : Client_Public,
-        UPLOAD_CLIENT : Client_Upload
+        UPLOAD_CLIENT : Client_Upload,
         RING_USER : Client_Ring
     }
 

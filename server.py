@@ -26,6 +26,7 @@ private_bool = False
 end_private_message = "end"
 key = "salut"
 
+client_en_envoi_de_fichier = []
 
 
 def read_kbd_input(inputQueue):
@@ -156,7 +157,7 @@ def private_server_client(clients_connectes,input_str):
 
 def main():
     #Define global variables
-    global clients_connectes, returned_string, private_bool, client_name_private
+    global clients_connectes, returned_string, private_bool, client_name_private, client_en_envoi_de_fichier
 
 
     #! Set up socket variables
@@ -231,7 +232,7 @@ def main():
             pass
         else:
             # On parcourt la liste des clients à lire
-            for client in clients_a_lire:
+            for client in list(set(clients_a_lire) - set(client_en_envoi_de_fichier)):
                 # Client est de type Client
                 msg_recu = Receive_Message(key, client.socket)
                 #msg_recu = client.socket.recv(1024)
@@ -240,7 +241,7 @@ def main():
                 
                 #! Check client functions
                 if(msg_recu[0] == "#"):
-                    client_functions.Check_client_functions(msg_recu, client, clients_connectes)
+                    client_functions.Check_client_functions(msg_recu, client, clients_connectes,client_en_envoi_de_fichier)
                 #Si l'attribut room du client n'est pas sur public, alors on doit envoyer son message à un client en particulier
                 elif(client.room!="public"):
                     for other_client in clients_connectes:

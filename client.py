@@ -10,7 +10,6 @@ key = "salut"
 
 # Import files
 import os
-import tqdm
 
 def read_kbd_input(inputQueue):
     print('Ready for keyboard input:')

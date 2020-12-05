@@ -132,7 +132,8 @@ def Client_Upload(client,msg_recu,clients_connectes,client_en_envoi_fichier):
     filesize = int(filesize)
     #Start File-receiver Thread 
     client_en_envoi_fichier.append(client)
-    client.socket.send(b"OK")
+    Send_Message(b"OK", key, client.socket)
+    #client.socket.send(b"OK")
   
 
     filename_sans_extension, extension = filename.split(".")
@@ -214,6 +215,6 @@ def Check_client_functions(msg_recu, client, clients_connectes,client_en_envoi_f
     except :
         msg = b"Command not found, try using #Help"
         Send_Message(msg, key, client.socket)
-        client.socket.send(msg)
+        #client.socket.send(msg)
     
 

@@ -99,7 +99,7 @@ def Client_ListU (msg_recu,client, clients_connectes,client_en_envoi_fichier, Ro
 
         for element in clients_connectes:
             if (client != element):
-                msg+=("User {}: {} @{}:{}\n".format(count_user, element.username, element.IP, element.port))
+                msg+=("User {}: '{}' @{}:{}\n".format(count_user, element.username, element.IP, element.port))
                 count_user+=1
         msg+="\n"
         Send_Message(msg.encode(), key, client.socket)
@@ -206,21 +206,28 @@ def Join_Room(msg_recu, client, clients_connectes, client_en_envoi_fichier, Room
 def Add_Room(msg_recu, client, clients_connectes, client_en_envoi_fichier, Rooms):
     check_room = False
     check_added_client = False
-    name_clients=[]
-    for cli in clients_connectes:
-        name_clients.append(cli.username)
 
     if(len(msg_recu.split(' ')) > 2):
         msg_recu = msg_recu.split(' ')
         client_to_add = msg_recu[1]
         room_name = msg_recu[2:len(msg_recu)]
         room_name = " ".join(room_name)
+
+        name_clients_connected=[]
+        for cli in clients_connectes:
+            name_clients_connected.append(cli.username)
+
+        name_clients_room=[]
+        for room in Rooms:
+            for cli in room.clients:
+                name_clients_room.append(cli.username)
+
         for room in Rooms:
             if (room_name == room.name):
                 check_room = True
                 if (client.username == room.admin.username):
                     for cli in clients_connectes:
-                        if (cli.username == client_to_add and (client_to_add not in name_clients)):
+                        if (cli.username == client_to_add and (client_to_add in name_clients_connected) and (client_to_add not in name_clients_room)):
                             check_added_client = True
                             room.clients.append(cli)
                             msg_to_added_client="You were added to the room '{}' by '{}'".format(room_name, client.username)
@@ -239,7 +246,48 @@ def Add_Room(msg_recu, client, clients_connectes, client_en_envoi_fichier, Rooms
         Send_Message(b"Please write the correct attributes after the command", key, client.socket)
 
 def Kick_Room(msg_recu, client, clients_connectes, client_en_envoi_fichier, Rooms):
-    return
+    check_room = False
+    check_kicked_client = False
+
+    if(len(msg_recu.split(' ')) > 2):
+        msg_recu = msg_recu.split(' ')
+        client_to_kick = msg_recu[1]
+        room_name = msg_recu[2:len(msg_recu)]
+        room_name = " ".join(room_name)
+
+        name_clients_connected=[]
+        for cli in clients_connectes:
+            name_clients_connected.append(cli.username)
+
+        name_clients_room=[]
+        for room in Rooms:
+            for cli in room.clients:
+                name_clients_room.append(cli.username)
+
+        for room in Rooms:
+            if (room_name == room.name):
+                check_room = True
+                if (client.username == room.admin.username):
+                    for cli in clients_connectes:
+                        if (cli.username == client_to_kick and (client_to_kick in name_clients_connected) and (client_to_kick in name_clients_room)):
+                            check_kicked_client = True
+                            room.clients.remove(cli)
+                            cli.room = "public"
+                            msg_to_kicked_client="You were kicked from the room '{}' by '{}'.\n".format(room_name, client.username)
+                            msg_to_kicked_client+="You are now back at the public chat."
+                            Send_Message(msg_to_kicked_client.encode(), key, cli.socket)
+                            break
+                else:
+                    Send_Message(b"You can't do this action because you are not the admin of the room", key, client.socket)
+                break
+
+        if (not check_room):
+            Send_Message(b"The room name you wrote doesn't exist", key, client.socket)
+
+        if (not check_kicked_client and check_room):
+            Send_Message(b"The user is either not connected or not in the room", key, client.socket)
+    else:
+        Send_Message(b"Please write the correct attributes after the command", key, client.socket)
 
 def Leave_Room(msg_recu, client, clients_connectes, client_en_envoi_fichier, Rooms):
     found=False

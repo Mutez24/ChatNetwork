@@ -1,3 +1,6 @@
+# Import sockets libraries
+import socket
+
 def PolyEncryption(to_encrypt, key):
     encrypted = ""
     size=len(key)
@@ -19,7 +22,33 @@ def PolyDecryption(to_decrypt, key):
         decrypted+=(chr(old_ascii))
     return decrypted     
 
-        
+def Send_Message(msg_encode, key, socket, force= False):
+    msg = msg_encode.decode()
+    #Si le message est trop long on retourne un message d'erreur
+    if (len(msg)>280 and not force):
+        print("Your message is too long to be sent (over 280 character)")
+    #Sinon on l'envoie
+
+    #! Pour le bug des \n qui se transforment en "i" tu peux split le message de base sur les \n, encoder les
+    #! différents morceaux puis les recoller en remettant des \n entre
+    #! Inversement pour la décryption
+    #! Sinon tu modifies tes fonctions crypt décrypt
+    else:
+        msg_crypted = PolyEncryption(msg, key)
+        #Pour montrer que ca fonctionne bien
+        #print("message crypté envoyé :{}".format(msg_crypted))
+        msg_to_send = msg_crypted.encode()
+        socket.send(msg_to_send)
+    
+
+def Receive_Message(key, socket):
+    msg = socket.recv(1024)
+    msg = msg.decode()
+    #Pour montrer que ca fonctionne bien
+    #print("message crypté recu : {}".format(msg))
+    msg_decrypted = PolyDecryption(msg, key)
+    final_msg = msg_decrypted.encode()
+    return final_msg
 
 if __name__ == '__main__':
     encrypt=PolyEncryption("Clement","cle")

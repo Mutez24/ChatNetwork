@@ -4,7 +4,7 @@
 #! 2) #Exit (server shutdown)
 #! 3) #Kill <user>
 #! 4) #ListU (list of users in a server)
-5) #ListF (list of files in a server)
+#! 5) #ListF (list of files in a server)
 #! 6) #Private <user> (private chat with another user)
 #! 7) #Alert <all users>
 '''
@@ -14,6 +14,12 @@ import socket
 #Import display libraries
 from datetime import datetime
 
+#Import cyphering key
+from cyphering import *
+key = "salut"
+
+#Import files checking
+import os
 
 #! Commandes serveur
 EXIT_SERVER = "#Exit" #Command used by server to shutdown
@@ -22,12 +28,14 @@ KILL_SERVER = "#Kill" #Command used by server to kill user terminal
 LISTU_SERVER = "#ListU" #Command used by the server to display all the connected users
 ALERT_SERVER = "#Alert" #Command used by the server to send a message to all users
 PRIVATE_SERVER = "#Private" ##Command used by the server to send a message to a particular user
+LISTF_SERVER = "#ListF" ##Command used by the server to check all existing files in Files dir
 
 def Server_Exit(input_server, clients_connectes,connexion_principale,connexions_demandees):
     if(input_server == EXIT_SERVER):
         print("Server closing...")
         for client in clients_connectes:
-            client.socket.send(b"Server shutdown")
+            Send_Message(b"Server shutdown", key, client.socket)
+            #client.socket.send(b"Server shutdown")
             client.socket.close()
         
         ''' test pour close les users qui sont en train de se connecter ou creer un compte quand le serveur shutdown. Si fonctionne pas retirer connexion_demandees 
@@ -47,7 +55,8 @@ def Server_Kill(input_server, clients_connectes,connexion_principale,connexions_
         for client in clients_connectes:
             if (client.username == input_server.split(' ')[1]):
                 client_connected_existed = True
-                client.socket.send(b"You were kicked by server")
+                Send_Message(b"You were kicked by server", key, client.socket)
+                #client.socket.send(b"You were kicked by server")
                 client.socket.close()
                 clients_connectes.remove(client)
                 print("User '{}' was kicked by server at {} from @{}:{}".format(client.username, datetime.now(), client.IP, client.port))
@@ -55,7 +64,8 @@ def Server_Kill(input_server, clients_connectes,connexion_principale,connexions_
                 for client_not_kicked in clients_connectes:
                     if (client_not_kicked != client):
                         msg = "User '{}' was kicked by server".format(input_server.split(' ')[1])
-                        client_not_kicked.socket.send(msg.encode())
+                        Send_Message(msg.encode(), key, client_not_kicked.socket)
+                        #client_not_kicked.socket.send(msg.encode())
     
     if (len(input_server.split(' ')) == 1):
         print("Please write a client name after the command")
@@ -89,7 +99,8 @@ def Server_Alert(input_server, clients_connectes,connexion_principale,connexions
         msg = "MESSAGE FROM SERVER :" +msg
 
         for client in clients_connectes:
-            client.socket.send(msg.encode())
+            Send_Message(msg.encode(), key, client.socket)
+            #client.socket.send(msg.encode())
 
     else:
         print("There is nothing to send. If you want to send something, write a message after the command")
@@ -110,7 +121,12 @@ def Server_Private(input_server, clients_connectes,connexion_principale,connexio
     if (client_connected_existed == False and len(input_server.split(' ')) != 1):
         print("Client not connected or not existing")
 
-    
+def Server_ListF(input_server, clients_connectes,connexion_principale,connexions_demandees):
+    list_files = os.listdir("Files")
+    msg_a_print = "\n Liste des fichiers : \n "
+    for fichier in list_files:
+        msg_a_print+= "{} \n".format(fichier)
+    print(msg_a_print)
 
 
 options = {
@@ -120,6 +136,7 @@ options = {
         LISTU_SERVER : Server_ListU,
         ALERT_SERVER : Server_Alert,
         PRIVATE_SERVER : Server_Private,
+        LISTF_SERVER : Server_ListF
     }
 
 def Check_server_functions(input_server, clients_connectes,connexion_principale,connexions_demandees):

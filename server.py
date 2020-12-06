@@ -307,8 +307,11 @@ def main():
                 #! Check client functions
                 if(msg_recu[0] == "#"):
                     if(msg_recu[1:11]=="CreateRoom"):
-                        room_creator, room_name=client_functions.Check_client_functions(msg_recu, client, clients_connectes, client_en_envoi_fichier, Rooms)
-                        (threading.Thread(target=Create_Room_Server, args=(room_creator, room_name,), daemon=True)).start()
+                        try:
+                            room_creator, room_name=client_functions.Check_client_functions(msg_recu, client, clients_connectes, client_en_envoi_fichier, Rooms)
+                            (threading.Thread(target=Create_Room_Server, args=(room_creator, room_name,), daemon=True)).start()
+                        except:
+                            pass
                     else:
                         client_functions.Check_client_functions(msg_recu, client, clients_connectes, client_en_envoi_fichier, Rooms)
                 #Si l'attribut room du client n'est pas sur public, alors on doit envoyer son message à un client en particulier
@@ -318,16 +321,21 @@ def main():
                             msg_a_envoyer = "Private: '{}' > {}".format(client.username,msg_recu)
                             Send_Message(msg_a_envoyer.encode(), key, other_client.socket)
                             #other_client.socket.send(msg_a_envoyer.encode())
-                        else:
                             print("{} @{}:{} to @{}:{} | '{}' to '{}' > {} \n".format(datetime.now(), client.IP, client.port, other_client.IP, other_client.port, client.username, other_client.username, msg_recu)) #Affichage côté serveur
+                    for room in Rooms:
+                        if(room.name==client.room):
+                            for receveur_client in room.clients:
+                                if(client != receveur_client):
+                                    msg_a_envoyer = "Room '{}': '{}' > {}".format(room.name,client.username,msg_recu)
+                                    Send_Message(msg_a_envoyer.encode(), key, receveur_client.socket)
+                            
                 else:                                               
                     for receveur_client in clients_connectes:
                         if(client != receveur_client):
                             msg_a_envoyer = "Public: '{}' > {}".format(client.username,msg_recu)
                             Send_Message(msg_a_envoyer.encode(), key, receveur_client.socket)
                             #receveur_client.socket.send(msg_a_envoyer.encode()) #Envoi du msg reçu sur le channel public
-                        else:
-                            print("{} @{}:{} | '{}' > {} \n".format(datetime.now(), client.IP, client.port, client.username, msg_recu)) #Affichage côté serveur
+                    print("{} @{}:{} | '{}' > {} \n".format(datetime.now(), client.IP, client.port, client.username, msg_recu)) #Affichage côté serveur
                 
 
         # Sleep for a short time to prevent this thread from sucking up all of your CPU resources on your PC.

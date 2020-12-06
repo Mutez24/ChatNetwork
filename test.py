@@ -15,10 +15,4 @@ def Check_client_functions(msg_recu):
     commande = msg_recu.split(' ')[0]
     options[commande]("yo")
 
-def TestRoom():
-    new_room=Room("elite","clem")
-    print(new_room.clients)
 
-
-
-TestRoom()

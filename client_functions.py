@@ -4,7 +4,7 @@
 #! 2) #Exit (client exit)
 #! 3) #ListU (list of users in a server)
 #TODO Rémi 4) #ListF (list of files in a server)
-#TODO Rémi 5) #TrfU (Upload file transfer to a server)
+#! Rémi 5) #TrfU (Upload file transfer to a server)
 #TODO Rémi 6) #TrfD (transfer Download file to a server)
 #TODO VALOT • # Private <user> (private chat with another user)
 #TODO VALOT • #Public (back to the public)
@@ -40,6 +40,7 @@ PRIVATE_CLIENT = "#Private" #Command used by clients to chat privately with one 
 PUBLIC_CLIENT = "#Public" #Command used by clients to get back to public chat after using private chat
 UPLOAD_CLIENT = "#TrfU" #Command used by clients to upload files
 RING_USER = "#Ring" #Command used by clients to ring a user if he's logged in
+LISTF_CLIENT = "#ListF" #Command used by clients to ring a user if he's logged in
 #TODO TOUJOURS mettre les 3 mêmes paramètres dans chaque fonction même si on ne se sert pas des 3
 #TODO En effet les appels de fonctions sont définis par défaut avec ces paramètres dans la fonction Check_client_functions
 
@@ -71,7 +72,7 @@ def Client_Help (client,msg_recu, clients_connectes,client_en_envoi_fichier):
         #Public (back to the public) \n \
         #Ring <user> (notification if the user is logged in)"
 
-        Send_Message(msg.encode(), key, client.socket)
+        Send_Message(msg.encode(), key, client.socket, force=True)
         #client.socket.send(msg.encode())
     else:
         raise Exception
@@ -179,7 +180,7 @@ def Thread_File_Receiver(filename,filesize,client,client_en_envoi_fichier):
             # update the progress bar
             progress.update(len(bytes_read))
     client_en_envoi_fichier.remove(client)
-def Client_Ring(client,msg_recu, clients_connectes):
+def Client_Ring(client,msg_recu, clients_connectes,client_en_envoi_fichier):
     client_target_existed = False
     if(len(msg_recu.split(' ')) == 2): #on peut se permettre de verifier s'il n'y a que deux termes car le username ne peut pas contenir d'espace (regle qu'on a fixée)
         for other_client in clients_connectes:
@@ -197,6 +198,8 @@ def Client_Ring(client,msg_recu, clients_connectes):
         Send_Message(b"User you tried to ring is not connected or not existing", key, client.socket)
         #client.socket.send(b"User you tried to ring is not connected or not existing")
 
+def Client_ListF(msg_recu, client, clients_connectes,client_en_envoi_fichier):
+    return
 options = {
         EXIT_CLIENT : Client_Exit,
         HELP_CLIENT : Client_Help,
@@ -204,7 +207,9 @@ options = {
         PRIVATE_CLIENT : Client_Private,
         PUBLIC_CLIENT : Client_Public,
         UPLOAD_CLIENT : Client_Upload,
-        RING_USER : Client_Ring
+        RING_USER : Client_Ring,
+        LISTF_CLIENT : Client_ListF
+        
     }
 
 def Check_client_functions(msg_recu, client, clients_connectes,client_en_envoi_fichier):

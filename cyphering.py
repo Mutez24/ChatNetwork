@@ -22,10 +22,10 @@ def PolyDecryption(to_decrypt, key):
         decrypted+=(chr(old_ascii))
     return decrypted     
 
-def Send_Message(msg_encode, key, socket):
+def Send_Message(msg_encode, key, socket, force= False):
     msg = msg_encode.decode()
     #Si le message est trop long on retourne un message d'erreur
-    if (len(msg)>280):
+    if (len(msg)>280 and not force):
         print("Your message is too long to be sent (over 280 character)")
     #Sinon on l'envoie
     else:

@@ -41,6 +41,10 @@ PUBLIC_CLIENT = "#Public" #Command used by clients to get back to public chat af
 CREATE_CHATROOM_CLIENT= "#CreateRoom" #Command used by clients to create group chats with multiple users
 JOIN_CHATROOM_CLIENT="#JoinRoom" #Join one room which the client belongs to
 LIST_CHATROOM_CLIENT="#ListRoom" #List all rooms the client belongs to
+ADD_CLIENT_CHATROOM_CLIENT="#AddRoom" #Add a client to a room
+KICK_CLIENT_CHATROOM_CLIENT="#KickRoom" #Kick a client to a room
+LEAVE_CLIENT_CHATROOM_CLIENT="#LeaveRoom" #Client wants to leave the room
+LIST_CLIENT_CHATROOM_CLIENT="#ListClientRoom" #List of client in a room
 UPLOAD_CLIENT = "#TrfU" #Command used by clients to upload files
 RING_USER = "#Ring" #Command used by clients to ring a user if he's logged in
 LISTF_CLIENT = "#ListF" #Command used by clients to see all files
@@ -77,7 +81,11 @@ def Client_Help (msg_recu,client, clients_connectes,client_en_envoi_fichier, Roo
         #Ring <user> (notification if the user is logged in)\n \
         #CreateRoom <room name> (create private chat room with multiple clients) \n \
         #JoinRoom <room name> (Join a room the client was added to)\n \
-        #ListRoom (List all rooms the client was added to)\n"
+        #ListRoom (List all rooms the client was added to)\n \
+        #AddRoom <username> <room name> (Add a client to room)\n \
+        #KickRoom <username> <room name> (Kick a client from room)\n \
+        #LeaveRoom <room name> (Allow a client to leave a room)\n \
+        #ListClientRoom <room name> (Allow a client to see the members of the room)\n"
 
         Send_Message(msg.encode(), key, client.socket, force=True)
         #client.socket.send(msg.encode())
@@ -195,6 +203,49 @@ def Join_Room(msg_recu, client, clients_connectes, client_en_envoi_fichier, Room
     else:
         raise Exception
 
+def Add_Room(msg_recu, client, clients_connectes, client_en_envoi_fichier, Rooms):
+    check_room = False
+    check_added_client = False
+    name_clients=[]
+    for cli in clients_connectes:
+        name_clients.append(cli.username)
+
+    if(len(msg_recu.split(' ')) > 2):
+        msg_recu = msg_recu.split(' ')
+        client_to_add = msg_recu[1]
+        room_name = msg_recu[2:len(msg_recu)]
+        room_name = " ".join(room_name)
+        for room in Rooms:
+            if (room_name == room.name):
+                check_room = True
+                if (client.username == room.admin.username):
+                    for cli in clients_connectes:
+                        if (cli.username == client_to_add and (client_to_add not in name_clients)):
+                            check_added_client = True
+                            room.clients.append(cli)
+                            msg_to_added_client="You were added to the room '{}' by '{}'".format(room_name, client.username)
+                            Send_Message(msg_to_added_client.encode(), key, cli.socket)
+                            break
+                else:
+                    Send_Message(b"You can't do this action because you are not the admin of the room", key, client.socket)
+                break
+
+        if (not check_room):
+            Send_Message(b"The room name you wrote doesn't exist", key, client.socket)
+
+        if (not check_added_client and check_room):
+            Send_Message(b"The user is either not connected or already in the room", key, client.socket)
+    else:
+        Send_Message(b"Please write the correct attributes after the command", key, client.socket)
+
+def Kick_Room(msg_recu, client, clients_connectes, client_en_envoi_fichier, Rooms):
+    return
+
+def Leave_Room(msg_recu, client, clients_connectes, client_en_envoi_fichier, Rooms):
+    return
+
+def List_Client_Room(msg_recu, client, clients_connectes, client_en_envoi_fichier, Rooms):
+    return
                             
 def Client_Upload(msg_recu,client, clients_connectes,client_en_envoi_fichier, Rooms):
     filename, filesize = msg_recu.split("<>")
@@ -319,6 +370,10 @@ options = {
         CREATE_CHATROOM_CLIENT : Create_Room,
         JOIN_CHATROOM_CLIENT: Join_Room,
         LIST_CHATROOM_CLIENT: List_Room,
+        ADD_CLIENT_CHATROOM_CLIENT: Add_Room,
+        KICK_CLIENT_CHATROOM_CLIENT: Kick_Room,
+        LEAVE_CLIENT_CHATROOM_CLIENT: Leave_Room,
+        LIST_CLIENT_CHATROOM_CLIENT: List_Client_Room,
         UPLOAD_CLIENT : Client_Upload,
         RING_USER : Client_Ring,
         LISTF_CLIENT : Client_ListF,

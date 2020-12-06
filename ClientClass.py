@@ -7,7 +7,7 @@ class Client:
         self.port = port
         self.socket = socket
         self.room = "public"
-
+        
     @staticmethod
     def Liste_Sockets (liste_client):
         result = []

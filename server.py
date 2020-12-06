@@ -15,6 +15,7 @@ from datetime import datetime
 
 # Import Class and Manager files
 from ClientClass import *
+from RoomClass import *
 import client_functions
 import server_functions
 
@@ -23,6 +24,7 @@ clients_connectes = []
 (returned_string, client_name_private) = ("","")
 private_bool = False
 end_private_message = "end"
+Rooms=[]
 
 
 
@@ -135,6 +137,49 @@ def private_server_client(clients_connectes,input_str):
                 msg = "PRIVATE MESSAGE FROM SERVER : " + input_str
                 client.socket.send(msg.encode())
 
+def Create_Room_Server(client, room_name):
+    global Rooms
+    new_room=Room(room_name,client)
+    while(True):
+        choice=""
+        while(choice!="1" and choice !="2"):
+            msg="\nType 1 to add a new client or 2 to finish the creation: "
+            client.socket.send(msg.encode())
+            choice = client.socket.recv(1024).decode()
+        if(choice=="1"):
+            client_connected_existed=False
+            client_functions.Check_client_functions("#ListU", client, clients_connectes, Rooms)
+            client.socket.send(b"Please, write one of the name mentionned above: ")
+            client_typed = client.socket.recv(1024).decode()
+            for other_client in clients_connectes:
+                if (other_client.username == client_typed and (other_client not in new_room.clients)):
+                    new_room.clients.append(other_client)
+                    client_connected_existed = True
+            if(not client_connected_existed):
+                msg_error="\nclient '{}' doesn't exist or is unconnected or is already in your room.\n".format(client_typed)
+                client.socket.send(msg_error.encode())
+        else:
+            if(len(new_room.clients)>=3):
+                Rooms.append(new_room)
+                print("The room '{}' was created successfully by '{}'.\n".format(new_room.name,client.username))
+                msg_success="Room '{}' created successfully!".format(room_name)   
+                for added_client in new_room.clients:
+                    if(added_client.username!=client.username):
+                        msg_to_added_client="You were added to the room '{}' by '{}'".format(new_room.name, client.username)
+                        added_client.socket.send(msg_to_added_client.encode())         
+                client.socket.send(msg_success.encode())
+                break
+            else:
+                msg_exit="You don't have enough clients in your room (3).\n"
+                msg_exit+="If you want to exit this process, type : 'exit'.\n"
+                msg_exit+="Otherwise, press any other key and then enter.\n"
+                client.socket.send(msg_exit.encode())
+                choice = client.socket.recv(1024).decode()
+                if(choice=="exit"):
+                    msg_exit="Your room wasn't created, you are now back in the chat.\n"
+                    client.socket.send(msg_exit.encode())
+                    break
+
 def main():
     #Define global variables
     global clients_connectes, returned_string, private_bool, client_name_private
@@ -220,19 +265,23 @@ def main():
                 
                 #! Check client functions
                 if(msg_recu[0] == "#"):
-                    client_functions.Check_client_functions(msg_recu, client, clients_connectes)
+                    if(msg_recu[1:11]=="CreateRoom"):
+                        room_creator, room_name=client_functions.Check_client_functions(msg_recu, client, clients_connectes, Rooms)
+                        (threading.Thread(target=Create_Room_Server, args=(room_creator, room_name,), daemon=True)).start()
+                    else:
+                        client_functions.Check_client_functions(msg_recu, client, clients_connectes, Rooms)
                 #Si l'attribut room du client n'est pas sur public, alors on doit envoyer son message à un client en particulier
                 elif(client.room!="public"):
                     for other_client in clients_connectes:
                         if(other_client.username==client.room):
-                            msg_a_envoyer = "{} > {}".format(client.username,msg_recu)
+                            msg_a_envoyer = "Private: '{}' > {}".format(client.username,msg_recu)
                             other_client.socket.send(msg_a_envoyer.encode())
                         else:
                             print("{} @{}:{} to @{}:{} | '{}' to '{}' > {} \n".format(datetime.now(), client.IP, client.port, other_client.IP, other_client.port, client.username, other_client.username, msg_recu)) #Affichage côté serveur
                 else:                                               
                     for receveur_client in clients_connectes:
                         if(client != receveur_client):
-                            msg_a_envoyer = "'{}' > {}".format(client.username,msg_recu)
+                            msg_a_envoyer = "Public: '{}' > {}".format(client.username,msg_recu)
                             receveur_client.socket.send(msg_a_envoyer.encode()) #Envoi du msg reçu sur le channel public
                         else:
                             print("{} @{}:{} | '{}' > {} \n".format(datetime.now(), client.IP, client.port, client.username, msg_recu)) #Affichage côté serveur

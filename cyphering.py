@@ -28,6 +28,11 @@ def Send_Message(msg_encode, key, socket, force= False):
     if (len(msg)>280 and not force):
         print("Your message is too long to be sent (over 280 character)")
     #Sinon on l'envoie
+
+    #! Pour le bug des \n qui se transforment en "i" tu peux split le message de base sur les \n, encoder les
+    #! différents morceaux puis les recoller en remettant des \n entre
+    #! Inversement pour la décryption
+    #! Sinon tu modifies tes fonctions crypt décrypt
     else:
         msg_crypted = PolyEncryption(msg, key)
         #Pour montrer que ca fonctionne bien

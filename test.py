@@ -1,5 +1,6 @@
-import time
-for i in range(100):
-    print("", end=f"\rPercentComplete: {i} %")
-    time.sleep(0.2)
+import os
+
+mypath = "Files"
+files = os.listdir(mypath)
+print(files)
     

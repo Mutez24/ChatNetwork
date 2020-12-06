@@ -4,7 +4,7 @@
 #! 2) #Exit (server shutdown)
 #! 3) #Kill <user>
 #! 4) #ListU (list of users in a server)
-5) #ListF (list of files in a server)
+#! 5) #ListF (list of files in a server)
 #! 6) #Private <user> (private chat with another user)
 #! 7) #Alert <all users>
 '''
@@ -14,8 +14,12 @@ import socket
 #Import display libraries
 from datetime import datetime
 
+#Import cyphering key
 from cyphering import *
 key = "salut"
+
+#Import files checking
+import os
 
 #! Commandes serveur
 EXIT_SERVER = "#Exit" #Command used by server to shutdown
@@ -24,6 +28,7 @@ KILL_SERVER = "#Kill" #Command used by server to kill user terminal
 LISTU_SERVER = "#ListU" #Command used by the server to display all the connected users
 ALERT_SERVER = "#Alert" #Command used by the server to send a message to all users
 PRIVATE_SERVER = "#Private" ##Command used by the server to send a message to a particular user
+LISTF_SERVER = "#ListF" ##Command used by the server to check all existing files in Files dir
 
 def Server_Exit(input_server, clients_connectes,connexion_principale,connexions_demandees):
     if(input_server == EXIT_SERVER):
@@ -116,7 +121,12 @@ def Server_Private(input_server, clients_connectes,connexion_principale,connexio
     if (client_connected_existed == False and len(input_server.split(' ')) != 1):
         print("Client not connected or not existing")
 
-    
+def Server_ListF(input_server, clients_connectes,connexion_principale,connexions_demandees):
+    list_files = os.listdir("Files")
+    msg_a_print = "\n Liste des fichiers : \n "
+    for fichier in list_files:
+        msg_a_print+= "{} \n".format(fichier)
+    print(msg_a_print)
 
 
 options = {
@@ -126,6 +136,7 @@ options = {
         LISTU_SERVER : Server_ListU,
         ALERT_SERVER : Server_Alert,
         PRIVATE_SERVER : Server_Private,
+        LISTF_SERVER : Server_ListF
     }
 
 def Check_server_functions(input_server, clients_connectes,connexion_principale,connexions_demandees):

@@ -234,7 +234,16 @@ def main():
             # On parcourt la liste des clients à lire
             for client in list(set(clients_a_lire) - set(client_en_envoi_de_fichier)):
                 # Client est de type Client
-                msg_recu = Receive_Message(key, client.socket)
+                # Empecher un crash si un client ferme sa fenetre avec la croix
+                msg_recu="" #Définition de la variable
+                try:
+                    msg_recu = Receive_Message(key, client.socket)
+                except ConnectionResetError: #Type d'erreur soulevé quand un client ferme de force sa fenêtre
+                    print("User {} forcefully deconnected".format(client.username))
+                    client.socket.close() #On ferme sa socket
+                    clients_connectes.remove(client) #On le retire des clients connectés
+                    continue #On passe au client suivant
+                
                 #msg_recu = client.socket.recv(1024)
                 # Peut planter si le message contient des caractères spéciaux
                 msg_recu = msg_recu.decode()

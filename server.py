@@ -28,7 +28,7 @@ end_private_message = "end"
 Rooms=[]
 key = "salut"
 
-client_en_envoi_de_fichier = []
+client_en_envoi_fichier = []
 
 
 def read_kbd_input(inputQueue):
@@ -164,45 +164,56 @@ def Create_Room_Server(client, room_name):
         choice=""
         while(choice!="1" and choice !="2"):
             msg="\nType 1 to add a new client or 2 to finish the creation: "
-            client.socket.send(msg.encode())
-            choice = client.socket.recv(1024).decode()
+            Send_Message(msg.encode(), key, client.socket)
+            #client.socket.send(msg.encode())
+            choice= Receive_Message(key, client.socket).decode()
+            #choice = client.socket.recv(1024).decode()
         if(choice=="1"):
             client_connected_existed=False
-            client_functions.Check_client_functions("#ListU", client, clients_connectes, Rooms)
-            client.socket.send(b"Please, write one of the name mentionned above: ")
-            client_typed = client.socket.recv(1024).decode()
+            client_functions.Check_client_functions("#ListU", client, clients_connectes, client_en_envoi_fichier, Rooms)
+            Send_Message(b"Please, write one of the name mentionned above: ", key, client.socket)
+            #client.socket.send(b"Please, write one of the name mentionned above: ")
+            client_typed= Receive_Message(key, client.socket).decode()
+            #client_typed = client.socket.recv(1024).decode()
             for other_client in clients_connectes:
                 if (other_client.username == client_typed and (other_client not in new_room.clients)):
                     new_room.clients.append(other_client)
                     client_connected_existed = True
             if(not client_connected_existed):
                 msg_error="\nclient '{}' doesn't exist or is unconnected or is already in your room.\n".format(client_typed)
-                client.socket.send(msg_error.encode())
+                Send_Message(msg_error.encode(), key, client.socket)
+                #client.socket.send(msg_error.encode())
         else:
             if(len(new_room.clients)>=3):
                 Rooms.append(new_room)
                 print("The room '{}' was created successfully by '{}'.\n".format(new_room.name,client.username))
-                msg_success="Room '{}' created successfully!".format(room_name)   
+                msg_success="Room '{}' created successfully!".format(room_name) 
+                Send_Message(msg_success.encode(), key, client.socket)  
+                #client.socket.send(msg_success.encode())
                 for added_client in new_room.clients:
                     if(added_client.username!=client.username):
                         msg_to_added_client="You were added to the room '{}' by '{}'".format(new_room.name, client.username)
-                        added_client.socket.send(msg_to_added_client.encode())         
-                client.socket.send(msg_success.encode())
+                        Send_Message(msg_to_added_client.encode(), key, added_client.socket)
+                        #added_client.socket.send(msg_to_added_client.encode())         
+                
                 break
             else:
                 msg_exit="You don't have enough clients in your room (3).\n"
                 msg_exit+="If you want to exit this process, type : 'exit'.\n"
                 msg_exit+="Otherwise, press any other key and then enter.\n"
-                client.socket.send(msg_exit.encode())
-                choice = client.socket.recv(1024).decode()
+                Send_Message(msg_exit.encode(), key, client.socket) 
+                #client.socket.send(msg_exit.encode())
+                choice= Receive_Message(key, client.socket).decode()
+                #choice = client.socket.recv(1024).decode()
                 if(choice=="exit"):
                     msg_exit="Your room wasn't created, you are now back in the chat.\n"
-                    client.socket.send(msg_exit.encode())
+                    Send_Message(msg_exit.encode(), key, client.socket)
+                    #client.socket.send(msg_exit.encode())
                     break
 
 def main():
     #Define global variables
-    global clients_connectes, returned_string, private_bool, client_name_private, client_en_envoi_de_fichier
+    global clients_connectes, returned_string, private_bool, client_name_private, client_en_envoi_fichier
 
 
     #! Set up socket variables
@@ -277,7 +288,7 @@ def main():
             pass
         else:
             # On parcourt la liste des clients à lire
-            for client in list(set(clients_a_lire) - set(client_en_envoi_de_fichier)):
+            for client in list(set(clients_a_lire) - set(client_en_envoi_fichier)):
                 # Client est de type Client
                 # Empecher un crash si un client ferme sa fenetre avec la croix
                 msg_recu="" #Définition de la variable
@@ -296,10 +307,10 @@ def main():
                 #! Check client functions
                 if(msg_recu[0] == "#"):
                     if(msg_recu[1:11]=="CreateRoom"):
-                        room_creator, room_name=client_functions.Check_client_functions(msg_recu, client, clients_connectes, client_en_envoi_de_fichier, Rooms)
+                        room_creator, room_name=client_functions.Check_client_functions(msg_recu, client, clients_connectes, client_en_envoi_fichier, Rooms)
                         (threading.Thread(target=Create_Room_Server, args=(room_creator, room_name,), daemon=True)).start()
                     else:
-                        client_functions.Check_client_functions(msg_recu, client, clients_connectes, client_en_envoi_de_fichier, Rooms)
+                        client_functions.Check_client_functions(msg_recu, client, clients_connectes, client_en_envoi_fichier, Rooms)
                 #Si l'attribut room du client n'est pas sur public, alors on doit envoyer son message à un client en particulier
                 elif(client.room!="public"):
                     for other_client in clients_connectes:

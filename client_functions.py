@@ -39,8 +39,8 @@ LISTU_CLIENT = "#ListU" #Command used by clients to get the list of other connec
 PRIVATE_CLIENT = "#Private" #Command used by clients to chat privately with one another
 PUBLIC_CLIENT = "#Public" #Command used by clients to get back to public chat after using private chat
 CREATE_CHATROOM_CLIENT= "#CreateRoom" #Command used by clients to create group chats with multiple users
-JOIN_CHATROOM_CLIENT="#JoinRoom"
-LIST_CHATROOM_CLIENT="#ListRoom"
+JOIN_CHATROOM_CLIENT="#JoinRoom" #Join one room which the client belongs to
+LIST_CHATROOM_CLIENT="#ListRoom" #List all rooms the client belongs to
 UPLOAD_CLIENT = "#TrfU" #Command used by clients to upload files
 RING_USER = "#Ring" #Command used by clients to ring a user if he's logged in
 LISTF_CLIENT = "#ListF" #Command used by clients to see all files
@@ -134,32 +134,17 @@ def Client_Public(msg_recu,client, clients_connectes,client_en_envoi_fichier, Ro
             client.room="public"
     else:
         raise Exception
-'''
-def List_Room(client,msg_recu, clients_connectes, client_en_envoi_fichier, Rooms):
-    
-    no_client=[]
-    client_room=msg_recu.split(' ')[1:len(msg_recu.split(' '))]
-    if(len(client_room) > 1): #on peut se permettre de verifier s'il n'y a que deux termes car le username ne peut pas contenir d'espace (regle qu'on a fixée)
-        for i in range (len(client_room))
-            client_connected_existed = False
-            for other_client in clients_connectes:
-                
-                if (other_client.username == client_room[i]):
-                    client_connected_existed = True
-                    
 
-            if(client_connected_existed==False):
-                no_client.append(client_room[i])
+def List_Room(msg_recu, client, clients_connectes, client_en_envoi_fichier, Rooms):
+    list_rooms="Here is the list of private Chat room you belong to:\n   "
+    for room in Rooms:
+        for room_client in room.clients:
+            if client.username==room_client.username:
+                list_rooms+=room.name+"\n   "
+                break
+    Send_Message(list_rooms.encode(),key,client.socket, force=True)
 
-    
-    elif (len(client_room) == 0):
-        Send_Message(b"Please write a user's name after the command",key,client.socket)
-        
-    
-    elif (len(msg_recu.split(' ')) == 1):
-        Send_Message(b"Please write more than one user's name after the command, or use command #Private",key,client.socket)
-'''                    
-def Create_Room(client,msg_recu, clients_connectes, client_en_envoi_fichier, Rooms):
+def Create_Room(msg_recu, client, clients_connectes, client_en_envoi_fichier, Rooms):
     exist=False
     if(len(msg_recu.split(' '))>1):
         room_name = msg_recu.lstrip(msg_recu.split(' ')[0])
@@ -298,6 +283,7 @@ options = {
         PRIVATE_CLIENT : Client_Private,
         PUBLIC_CLIENT : Client_Public,
         CREATE_CHATROOM_CLIENT : Create_Room,
+        LIST_CHATROOM_CLIENT: List_Room,
         UPLOAD_CLIENT : Client_Upload,
         RING_USER : Client_Ring,
         LISTF_CLIENT : Client_ListF,

@@ -245,7 +245,27 @@ def Leave_Room(msg_recu, client, clients_connectes, client_en_envoi_fichier, Roo
     return
 
 def List_Client_Room(msg_recu, client, clients_connectes, client_en_envoi_fichier, Rooms):
-    return
+    exist=False
+    if(len(msg_recu.split(' ')) > 1):
+        room_name = msg_recu.lstrip(msg_recu.split(' ')[0])
+        room_name = room_name[1:len(room_name)]
+        list_clients="Here is the list of clients belonging to Chat room '{}':".format(room_name)
+        for room in Rooms:
+            if room_name==room.name:
+                for cli in room.clients:
+                    if cli.username==client.username: #If client doesn't belong to the room, he can't see its members
+                        exist=True
+                    list_clients+="\n   "+cli.username
+                break
+        if(exist):
+            Send_Message(list_clients.encode(),key,client.socket, force=True)
+        else:
+            Send_Message(b"The room name you provided is either wrong or you don't belong to this room\n.",key,client.socket, force=True)
+    else:
+        raise Exception
+            
+
+    
                             
 def Client_Upload(msg_recu,client, clients_connectes,client_en_envoi_fichier, Rooms):
     filename, filesize = msg_recu.split("<>")

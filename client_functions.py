@@ -5,7 +5,7 @@
 #! 3) #ListU (list of users in a server)
 #! Rémi 4) #ListF (list of files in a server)
 #! Rémi 5) #TrfU (Upload file transfer to a server)
-#TODO Rémi 6) #TrfD (transfer Download file to a server)
+#! Rémi 6) #TrfD (transfer Download file to a server)
 #TODO VALOT • # Private <user> (private chat with another user)
 #TODO VALOT • #Public (back to the public)
 #TODO MUTEZ 1) #Ring <user> (notification if the user is logged in)
@@ -44,6 +44,7 @@ LIST_CHATROOM_CLIENT="#ListRoom" #List all rooms the client belongs to
 UPLOAD_CLIENT = "#TrfU" #Command used by clients to upload files
 RING_USER = "#Ring" #Command used by clients to ring a user if he's logged in
 LISTF_CLIENT = "#ListF" #Command used by clients to see all files
+DOWNLOAD_CLIENT = "#TrfD" #Command used by clients to upload files
 #TODO TOUJOURS mettre les 3 mêmes paramètres dans chaque fonction même si on ne se sert pas des 3
 #TODO En effet les appels de fonctions sont définis par défaut avec ces paramètres dans la fonction Check_client_functions
 
@@ -202,14 +203,13 @@ def Client_Upload(msg_recu,client, clients_connectes,client_en_envoi_fichier, Ro
     filesize = int(filesize)
     #Start File-receiver Thread 
     client_en_envoi_fichier.append(client)
-    Send_Message(b"OK", key, client.socket)
-    #client.socket.send(b"OK")
+    Send_Message(b"OK UPLOAD", key, client.socket)
+    #client.socket.send(b"OK UPLOAD")
   
 
     filename_sans_extension, extension = filename.split(".")
     filename_for_save = "Files/{}_{}.{}".format(filename_sans_extension,''.join(random.choices(string.ascii_letters + string.digits, k=10)), extension)
     #Ajouter un code à la fin du nom de base du fichier afin d'éviter des remplacements de fichier si plusieurs ont le même nom
-    #threading.Thread(target=Thread_File_Receiver, args=(filename,filesize,client,client_en_envoi_fichier,)).start()
     sum_bytes=0
     percent=0
     with open(filename_for_save, "wb") as f:
@@ -232,25 +232,7 @@ def Client_Upload(msg_recu,client, clients_connectes,client_en_envoi_fichier, Ro
         print()
     client_en_envoi_fichier.remove(client)
 
-''' #! Inutilisé
-def Thread_File_Receiver(filename,filesize,client,client_en_envoi_fichier):
-    # start receiving the file from the socket
-    # and writing to the file stream
-    progress = tqdm.tqdm(range(filesize), f"Receiving {filename}", unit="B", unit_scale=True, unit_divisor=1024)
-    with open(filename, "wb") as f:
-        for _ in progress:
-            # read 1024 bytes from the socket (receive)
-            bytes_read = client.socket.recv(1024)
-            if not bytes_read:    
-                # nothing is received
-                # file transmitting is done
-                break
-            # write to the file the bytes we just received
-            f.write(bytes_read)
-            # update the progress bar
-            progress.update(len(bytes_read))
-    client_en_envoi_fichier.remove(client)
-'''
+
 def Client_Ring(msg_recu,client, clients_connectes,client_en_envoi_fichier, Rooms):
     client_target_existed = False
     if(len(msg_recu.split(' ')) == 2): #on peut se permettre de verifier s'il n'y a que deux termes car le username ne peut pas contenir d'espace (regle qu'on a fixée)
@@ -277,6 +259,57 @@ def Client_ListF(msg_recu,client, clients_connectes,client_en_envoi_fichier, Roo
     msg_a_envoyer = msg_a_envoyer.encode()
     Send_Message(msg_a_envoyer,key,client.socket)
 
+def Client_Download(msg_recu,client, clients_connectes,client_en_envoi_fichier, Rooms):
+    filename=""
+    filesize = ""
+    try:
+        filename = msg_recu.split(' ',1)[1]
+        filesize = os.path.getsize("Files/"+filename)
+        msg_a_envoyer = "#TrfD {}<>{}".format(filename,filesize)
+        msg_a_envoyer = msg_a_envoyer.encode()
+    except:
+        msg_a_envoyer = b"#TrfD Error with file"
+    Send_Message(msg_a_envoyer,key,client.socket)
+
+
+    if(filesize != ""): #Si le file a bien été trouvé
+        #connexion_avec_serveur.send(msg_a_envoyer)
+        client_en_envoi_fichier.append(client) # On ne veut rien lui envoyer d'autre que le fichier
+        client_ready = False
+        recu = ""
+        while(not client_ready):
+            try:
+                recu = Receive_Message(key, client.socket).decode()
+                #recu = connexion_avec_serveur.recv(1024).decode()
+            except:
+                pass
+            if(recu == "OK DOWNLOAD"): client_ready=True
+        threading.Thread(target=Thread_File_Sender, args=(filename,filesize,client,client_en_envoi_fichier,)).start()
+
+def Thread_File_Sender (filename,filesize,client,client_en_envoi_fichier):
+    
+    #start sending file
+    sum_bytes=0
+    percent=0
+    with open("Files/"+filename, "rb") as f:
+        while(True):
+			# read the bytes from the file
+            bytes_read = f.read(1024)
+            if not bytes_read:
+				# file transmitting is done
+                break
+			# we use sendall to assure transimission in 
+			# busy networks
+            sum_bytes+= len(bytes_read)
+            percent = (int) (sum_bytes/filesize)*100
+            print("", end=f"\r {filename} envoyé à '{client.username}' : {percent} %")
+            client.socket.sendall(bytes_read)
+            
+			# update the progress bar
+    print()
+    client_en_envoi_fichier.remove(client)
+    
+
 options = {
         EXIT_CLIENT : Client_Exit,
         HELP_CLIENT : Client_Help,
@@ -288,7 +321,8 @@ options = {
         LIST_CHATROOM_CLIENT: List_Room,
         UPLOAD_CLIENT : Client_Upload,
         RING_USER : Client_Ring,
-        LISTF_CLIENT : Client_ListF
+        LISTF_CLIENT : Client_ListF,
+        DOWNLOAD_CLIENT : Client_Download
     }
 
 def Check_client_functions(msg_recu, client, clients_connectes, client_en_envoi_fichier, Rooms):

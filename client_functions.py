@@ -196,7 +196,7 @@ def Join_Room(msg_recu, client, clients_connectes, client_en_envoi_fichier, Room
             msg+="Every message you send can only be seen by members of this room.\n"
             Send_Message(msg.encode(),key,client.socket, force=True)
         else:
-            msg="The room name you provided is either wrong or you don't belong to this room\n."
+            msg="The room name you provided is either wrong or you don't belong to this room.\n"
             Send_Message(msg.encode(),key,client.socket, force=True)
     elif (len(msg_recu.split(' ')) == 1):
         Send_Message(b"Please write a user's name after the command", key, client.socket)
@@ -242,7 +242,28 @@ def Kick_Room(msg_recu, client, clients_connectes, client_en_envoi_fichier, Room
     return
 
 def Leave_Room(msg_recu, client, clients_connectes, client_en_envoi_fichier, Rooms):
-    return
+    found=False
+    if(len(msg_recu.split(' ')) > 1):
+        room_name = msg_recu.lstrip(msg_recu.split(' ')[0])
+        room_name = room_name[1:len(room_name)]
+        for room in Rooms:
+            if room.name==room_name:
+                index_removing_client=-1
+                for client_in_room in room.clients:
+                    index_removing_client+=1
+                    if client.username==client_in_room.username:
+                        room.clients.pop(index_removing_client)
+                        found=True
+                        break
+                if(found): 
+                    break
+        if(found): 
+            Send_Message(b"You left the chat room.\n", key, client.socket)
+        else:
+            Send_Message(b"You either typed a wrong room name or don't belong to this room.\n", key, client.socket)
+    else:
+        raise Exception 
+
 
 def List_Client_Room(msg_recu, client, clients_connectes, client_en_envoi_fichier, Rooms):
     exist=False
@@ -260,7 +281,7 @@ def List_Client_Room(msg_recu, client, clients_connectes, client_en_envoi_fichie
         if(exist):
             Send_Message(list_clients.encode(),key,client.socket, force=True)
         else:
-            Send_Message(b"The room name you provided is either wrong or you don't belong to this room\n.",key,client.socket, force=True)
+            Send_Message(b"The room name you provided is either wrong or you don't belong to this room.\n",key,client.socket, force=True)
     else:
         raise Exception
             

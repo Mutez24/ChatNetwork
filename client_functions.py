@@ -133,7 +133,7 @@ def Client_Public(msg_recu,client, clients_connectes,client_en_envoi_fichier, Ro
             client.room="public"
     else:
         raise Exception
-
+'''
 def List_Room(client,msg_recu, clients_connectes, client_en_envoi_fichier, Rooms):
     
     no_client=[]
@@ -157,7 +157,7 @@ def List_Room(client,msg_recu, clients_connectes, client_en_envoi_fichier, Rooms
     
     elif (len(msg_recu.split(' ')) == 1):
         Send_Message(b"Please write more than one user's name after the command, or use command #Private",key,client.socket)
-                       
+'''                    
 def Create_Room(client,msg_recu, clients_connectes, client_en_envoi_fichier, Rooms):
     exist=False
     if(len(msg_recu.split(' '))>1):
@@ -265,7 +265,6 @@ options = {
         PRIVATE_CLIENT : Client_Private,
         PUBLIC_CLIENT : Client_Public,
         CREATE_CHATROOM_CLIENT : Create_Room,
-        LIST_CHATROOM_CLIENT : List_Room,
         UPLOAD_CLIENT : Client_Upload,
         RING_USER : Client_Ring,
         LISTF_CLIENT : Client_ListF
@@ -275,7 +274,7 @@ def Check_client_functions(msg_recu, client, clients_connectes, client_en_envoi_
     commande = msg_recu.split(' ')[0]
 
     try:
-        return options[commande](client,msg_recu, clients_connectes, client_en_envoi_fichier, Rooms)
+        return options[commande](msg_recu,client, clients_connectes, client_en_envoi_fichier, Rooms)
     except :
         Send_Message(b"Command not found, try using #Help",key,client.socket)
     

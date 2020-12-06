@@ -41,7 +41,8 @@ def send_file(filename, filesize, connexion_avec_serveur):
 			# update the progress bar
 
 def Check_file_size (msg_a_envoyer):
-
+	filename=""
+	filesize = ""
 	try:
 		filename = msg_a_envoyer.split(' ',1)[1]
 		filesize = os.path.getsize(filename)
@@ -71,18 +72,19 @@ def main():
 			#Fct check character + si ok encryption
 			if(msg_a_envoyer.split(' ')[0] == "#TrfU"):
 				msg_a_envoyer,filename,filesize = Check_file_size(msg_a_envoyer)
-				Send_Message(msg_a_envoyer, key, connexion_avec_serveur)
-				#connexion_avec_serveur.send(msg_a_envoyer)
-				serveur_ready = False
-				recu = ""
-				while(not serveur_ready):
-					try:
-						recu = Receive_Message(key, connexion_avec_serveur).decode()
-						#recu = connexion_avec_serveur.recv(1024).decode()
-					except:
-						pass
-					if(recu == "OK"): serveur_ready=True
-				threading.Thread(target=send_file, args=(filename,filesize,connexion_avec_serveur,)).start()
+				if(filesize != ""): #Check if file really exists
+					Send_Message(msg_a_envoyer, key, connexion_avec_serveur)
+					#connexion_avec_serveur.send(msg_a_envoyer)
+					serveur_ready = False
+					recu = ""
+					while(not serveur_ready):
+						try:
+							recu = Receive_Message(key, connexion_avec_serveur).decode()
+							#recu = connexion_avec_serveur.recv(1024).decode()
+						except:
+							pass
+						if(recu == "OK"): serveur_ready=True
+					threading.Thread(target=send_file, args=(filename,filesize,connexion_avec_serveur,)).start()
 			else:
 				msg_a_envoyer = msg_a_envoyer.encode()	
 				Send_Message(msg_a_envoyer, key, connexion_avec_serveur)		

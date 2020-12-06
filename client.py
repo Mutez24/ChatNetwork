@@ -39,7 +39,7 @@ def send_file(filename, filesize, connexion_avec_serveur):
 			print("", end=f"\r {filename} envoyé : {percent} %")
 			connexion_avec_serveur.sendall(bytes_read)
 			# update the progress bar
-
+			print()
 def Check_file_size (msg_a_envoyer):
 	filename=""
 	filesize = ""
@@ -52,6 +52,36 @@ def Check_file_size (msg_a_envoyer):
 		print("Error with your file")
 		
 	return msg_a_envoyer,filename,filesize
+
+def save_file(msg_recu, connexion_avec_serveur):
+	#Dans msg_recu il n'y a que ce qu'il y a après le #TrfD
+	if(msg_recu == "Error with file"):
+		print(msg_recu)
+	else:
+		filename, filesize = msg_recu.split("<>")
+		filesize =  int(filesize)
+		filename_for_save = "Download_Server/" + filename
+		Send_Message(b"OK DOWNLOAD", key, connexion_avec_serveur)
+		sum_bytes=0
+		percent=0
+		with open(filename_for_save, "wb") as f:
+			while(True):
+            # read 1024 bytes from the socket (receive)
+				try:
+					percent = (int) (sum_bytes/filesize)*100
+					print("", end=f"\r {filename} envoyé par Serveur reçu: {percent} %")
+					connexion_avec_serveur.settimeout(0.5)
+					bytes_read = connexion_avec_serveur.recv(1024) #On laisse l'ancien recv à cause des problèmes de chiffrement
+					sum_bytes+= len(bytes_read)
+					
+				except :
+					connexion_avec_serveur.settimeout(0.05)
+					break  
+            # write to the file the bytes we just received
+				f.write(bytes_read)
+		print()
+
+	
 
 def main():
 	inputQueue = queue.Queue()
@@ -83,7 +113,7 @@ def main():
 							#recu = connexion_avec_serveur.recv(1024).decode()
 						except:
 							pass
-						if(recu == "OK"): serveur_ready=True
+						if(recu == "OK UPLOAD"): serveur_ready=True
 					threading.Thread(target=send_file, args=(filename,filesize,connexion_avec_serveur,)).start()
 			else:
 				msg_a_envoyer = msg_a_envoyer.encode()	
@@ -97,8 +127,11 @@ def main():
 
 			if (msg_recu == "Server shutdown" or msg_recu == "You were kicked by server"): #ce message ne peut pas être envoyé par un client car un message envoyé par un client contient au minimum le username et un chevron
 				print(msg_recu)
-				break		
-			print(msg_recu) # Là encore, peut planter s'il y a des accents
+				break
+			if (msg_recu.split(' ')[0] == "#TrfD"): #Si on s'apprête à recevoir des données fichier
+				save_file(msg_recu.split(' ',1)[1], connexion_avec_serveur)
+			else:
+				print(msg_recu) # Là encore, peut planter s'il y a des accents
 		except socket.timeout:	
 			pass
 		

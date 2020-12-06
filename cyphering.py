@@ -34,20 +34,28 @@ def Send_Message(msg_encode, key, socket, force= False):
     #! Inversement pour la décryption
     #! Sinon tu modifies tes fonctions crypt décrypt
     else:
-        msg_crypted = PolyEncryption(msg, key)
+        msg_a_crypter_split = msg.split("\n")
+        for i in range(len(msg_a_crypter_split)):
+            msg_a_crypter_split[i]=PolyEncryption(msg_a_crypter_split[i],key)
+        msg_crypter_join = "\n".join(msg_a_crypter_split)
+        #msg_crypted = PolyEncryption(msg, key)
         #Pour montrer que ca fonctionne bien
         #print("message crypté envoyé :{}".format(msg_crypted))
-        msg_to_send = msg_crypted.encode()
+        msg_to_send = msg_crypter_join.encode()
         socket.send(msg_to_send)
     
 
 def Receive_Message(key, socket):
     msg = socket.recv(1024)
     msg = msg.decode()
+    msg_to_decrypt_split = msg.split("\n")
+    for i in range(len(msg_to_decrypt_split)):
+        msg_to_decrypt_split[i]=PolyDecryption(msg_to_decrypt_split[i],key)
+    msg_decrypter_join = "\n".join(msg_to_decrypt_split)
     #Pour montrer que ca fonctionne bien
     #print("message crypté recu : {}".format(msg))
-    msg_decrypted = PolyDecryption(msg, key)
-    final_msg = msg_decrypted.encode()
+    #msg_decrypted = PolyDecryption(msg, key)
+    final_msg = msg_decrypter_join.encode()
     return final_msg
 
 if __name__ == '__main__':

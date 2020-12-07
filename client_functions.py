@@ -69,7 +69,7 @@ def Client_Exit (msg_recu,client, clients_connectes,client_en_envoi_fichier, Roo
         
 def Client_Help (msg_recu,client, clients_connectes,client_en_envoi_fichier, Rooms):
     if(msg_recu == HELP_CLIENT):
-        msg = "You can find a list of available commands below : \n \n \
+        msg = "You can find a list of available commands below : \n \
         #Help (list command) \n \
         #Exit (exit chat) \n \
         #ListF (list of files in a server) \n \
@@ -102,7 +102,7 @@ def Client_ListU (msg_recu,client, clients_connectes,client_en_envoi_fichier, Ro
                 msg+=("User {}: '{}' @{}:{}\n".format(count_user, element.username, element.IP, element.port))
                 count_user+=1
         msg+="\n"
-        Send_Message(msg.encode(), key, client.socket)
+        Send_Message(msg.encode(), key, client.socket, force=True)
         #client.socket.send(msg.encode())
     else :
         raise Exception
@@ -294,13 +294,25 @@ def Leave_Room(msg_recu, client, clients_connectes, client_en_envoi_fichier, Roo
     if(len(msg_recu.split(' ')) > 1):
         room_name = msg_recu.lstrip(msg_recu.split(' ')[0])
         room_name = room_name[1:len(room_name)]
+        index_removing_room=-1
         for room in Rooms:
+            index_removing_room+=1
             if room.name==room_name:
                 index_removing_client=-1
                 for client_in_room in room.clients:
                     index_removing_client+=1
                     if client.username==client_in_room.username:
                         room.clients.pop(index_removing_client)
+                        msg="'{}' Left the Chat Room '{}'.\n".format(client.username, room.name)
+                        if(len(room.clients)<2):
+                            Rooms.pop(index_removing_room)
+                            msg+="Chat room was dissolved because too few people were remaining.\n"
+                            for member in room.clients:
+                                Send_Message(msg.encode(),key, member.socket)
+                        elif(client.username==room.admin.username):
+                            room.admin=room.clients[0]
+                            msg="You are now the admin of the chat room '{}'.\n".format(room.name)
+                            Send_Message(msg.encode(),key, room.admin.socket)
                         found=True
                         break
                 if(found): 
@@ -324,7 +336,10 @@ def List_Client_Room(msg_recu, client, clients_connectes, client_en_envoi_fichie
                 for cli in room.clients:
                     if cli.username==client.username: #If client doesn't belong to the room, he can't see its members
                         exist=True
-                    list_clients+="\n   "+cli.username
+                    if cli.username==room.admin.username:
+                        list_clients+="\n   "+cli.username+" (admin)"
+                    else:
+                        list_clients+="\n   "+cli.username
                 break
         if(exist):
             Send_Message(list_clients.encode(),key,client.socket, force=True)

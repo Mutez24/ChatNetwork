@@ -219,8 +219,9 @@ def Add_Room(msg_recu, client, clients_connectes, client_en_envoi_fichier, Rooms
 
         name_clients_room=[]
         for room in Rooms:
-            for cli in room.clients:
-                name_clients_room.append(cli.username)
+            if (room.name == room_name):
+                for cli in room.clients:
+                    name_clients_room.append(cli.username)
 
         for room in Rooms:
             if (room_name == room.name):
@@ -261,8 +262,9 @@ def Kick_Room(msg_recu, client, clients_connectes, client_en_envoi_fichier, Room
 
         name_clients_room=[]
         for room in Rooms:
-            for cli in room.clients:
-                name_clients_room.append(cli.username)
+            if (room.name == room_name):
+                for cli in room.clients:
+                    name_clients_room.append(cli.username)
 
         for room in Rooms:
             if (room_name == room.name):
@@ -305,14 +307,17 @@ def Leave_Room(msg_recu, client, clients_connectes, client_en_envoi_fichier, Roo
                         room.clients.pop(index_removing_client)
                         msg="'{}' Left the Chat Room '{}'.\n".format(client.username, room.name)
                         if(len(room.clients)<2):
-                            Rooms.pop(index_removing_room)
                             msg+="Chat room was dissolved because too few people were remaining.\n"
                             for member in room.clients:
                                 Send_Message(msg.encode(),key, member.socket)
+                            Rooms.pop(index_removing_room)
                         elif(client.username==room.admin.username):
                             room.admin=room.clients[0]
                             msg="You are now the admin of the chat room '{}'.\n".format(room.name)
                             Send_Message(msg.encode(),key, room.admin.socket)
+                        else:
+                            for member in room.clients:
+                                Send_Message(msg.encode(),key, member.socket)
                         found=True
                         break
                 if(found): 

@@ -40,6 +40,7 @@ def send_file(filename, filesize, connexion_avec_serveur):
 			connexion_avec_serveur.sendall(bytes_read)
 			# update the progress bar
 			print()
+			
 def Check_file_size (msg_a_envoyer):
 	filename=""
 	filesize = ""

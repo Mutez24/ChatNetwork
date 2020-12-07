@@ -100,8 +100,11 @@ def login_register(connexion_avec_client, infos_connexion,conn):
                     #connexion_avec_client.send(msg)
                     unconnected = False
                 else:
-                    msg = b"Wrong credentials "
+                    msg = b"Wrong credentials\n"
                     Send_Message(msg, key, connexion_avec_client)
+                    unconnected = False #on laisse la possibilité de se créer un compte si jamais
+                    response = ""
+                    client_already_connected=True
                     #connexion_avec_client.send(msg)
                 
                     
@@ -136,6 +139,9 @@ def login_register(connexion_avec_client, infos_connexion,conn):
                 except sqlite3.IntegrityError:
                     msg = b"Username already existing"
                     Send_Message(msg, key, connexion_avec_client)
+                    unconnected = False #on laisse la possibilité de se créer un compte si jamais
+                    response = ""
+                    client_already_connected=True
                     #connexion_avec_client.send(msg)
                 
         
@@ -310,6 +316,7 @@ def main():
                         try:
                             room_creator, room_name=client_functions.Check_client_functions(msg_recu, client, clients_connectes, client_en_envoi_fichier, Rooms)
                             (threading.Thread(target=Create_Room_Server, args=(room_creator, room_name,), daemon=True)).start()
+                            #Create_Room_Server(room_creator, room_name)
                         except:
                             pass
                     else:

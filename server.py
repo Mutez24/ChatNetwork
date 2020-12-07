@@ -143,9 +143,7 @@ def login_register(connexion_avec_client, infos_connexion,conn):
                     response = ""
                     client_already_connected=True
                     #connexion_avec_client.send(msg)
-                
-        
-        
+                 
     CurrentClient = Client(username,infos_connexion[0],infos_connexion[1],connexion_avec_client)
     clients_connectes.append(CurrentClient)
     print("\nUser '{}' connected at {} from @{}:{} \n".format(CurrentClient.username,datetime.now(),CurrentClient.IP,CurrentClient.port))
@@ -166,6 +164,7 @@ def private_server_client(clients_connectes,input_str):
 def Create_Room_Server(client, room_name):
     global Rooms
     new_room=Room(room_name,client)
+    clients_connectes.remove(client)
     while(True):
         choice=""
         while(choice!="1" and choice !="2"):
@@ -192,7 +191,7 @@ def Create_Room_Server(client, room_name):
         else:
             if(len(new_room.clients)>=3):
                 Rooms.append(new_room)
-                print("The room '{}' was created successfully by '{}'.\n".format(new_room.name,client.username))
+                print("The room '{}' was created successfully at {} by '{}' from @{}:{}\n".format(new_room.name,datetime.now(),client.username,client.IP,client.port))
                 msg_success="Room '{}' created successfully!".format(room_name) 
                 Send_Message(msg_success.encode(), key, client.socket)  
                 #client.socket.send(msg_success.encode())
@@ -216,6 +215,7 @@ def Create_Room_Server(client, room_name):
                     Send_Message(msg_exit.encode(), key, client.socket)
                     #client.socket.send(msg_exit.encode())
                     break
+    clients_connectes.append(client)
 
 def main():
     #Define global variables
@@ -312,6 +312,7 @@ def main():
                 
                 #! Check client functions
                 if(msg_recu[0] == "#"):
+                    '''
                     if(msg_recu[1:11]=="CreateRoom"):
                         try:
                             room_creator, room_name=client_functions.Check_client_functions(msg_recu, client, clients_connectes, client_en_envoi_fichier, Rooms)
@@ -320,7 +321,8 @@ def main():
                         except:
                             pass
                     else:
-                        client_functions.Check_client_functions(msg_recu, client, clients_connectes, client_en_envoi_fichier, Rooms)
+                    '''
+                    client_functions.Check_client_functions(msg_recu, client, clients_connectes, client_en_envoi_fichier, Rooms)
                 #Si l'attribut room du client n'est pas sur public, alors on doit envoyer son message à un client en particulier
                 elif(client.room!="public"):
                     for other_client in clients_connectes:

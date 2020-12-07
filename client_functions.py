@@ -32,6 +32,8 @@ import time
 # Import threading libraries
 import threading
 
+from RoomClass import *
+
 #! Commandes clients
 EXIT_CLIENT = "#Exit" #Command used by clients to leave
 HELP_CLIENT = "#Help" #Command used by clients to get help
@@ -79,7 +81,7 @@ def Client_Help (msg_recu,client, clients_connectes,client_en_envoi_fichier, Roo
         #Private <user> (private chat with another user) \n \
         #Public (back to the public chat) \n \
         #Ring <user> (notification if the user is logged in)\n \
-        #CreateRoom <room name> (create private chat room with multiple clients) \n \
+        #CreateRoom <room name> <user1> <user2> ... (create private chat room with multiple clients) \n \
         #JoinRoom <room name> (Join a room the client was added to)\n \
         #ListRoom (List all rooms the client was added to)\n \
         #AddRoom <username> <room name> (Add a client to room)\n \
@@ -153,6 +155,63 @@ def List_Room(msg_recu, client, clients_connectes, client_en_envoi_fichier, Room
     Send_Message(list_rooms.encode(),key,client.socket, force=True)
 
 def Create_Room(msg_recu, client, clients_connectes, client_en_envoi_fichier, Rooms):
+    if(len(msg_recu.split(' '))>3):
+        exist=False
+        creation_success = False
+        clients_to_add_to_room = []
+        error_msg=""
+
+        msg_recu = msg_recu.split(' ')
+        room_name = msg_recu[1]
+        name_clients_typed = msg_recu[2:len(msg_recu)]
+
+        name_clients_connected=[]
+        for cli in clients_connectes:
+            name_clients_connected.append(cli.username)
+
+        if(room_name in name_clients_connected):
+            error_msg=b"The name of the room is already taken by a user, please try again and change the name.\n"
+            exist=True
+        for room in Rooms:
+            if(room_name==room.name):
+                error_msg=b"The name of the room is already taken by another room, please try again and change the name.\n"
+                exist=True
+                break
+        
+        if (not exist):
+            for name_cli_typed in name_clients_typed:
+                if (name_cli_typed in name_clients_connected and (name_cli_typed not in clients_to_add_to_room)):
+                    clients_to_add_to_room.append(name_cli_typed)
+                else:
+                    msg = "User '{}' is not connected or does not exist. In both case, he can't be added to the room. It's also possible that you already added him to the room (you might have written his name twice or more).".format(name_cli_typed)
+                    Send_Message(msg.encode(), key, client.socket)
+            
+            if (len(clients_to_add_to_room) > 1):
+                new_room=Room(room_name,client)
+                for cli in clients_connectes: #on refait cette boucle pour prendre toutes les infos concernant le client et pas que son nom
+                    if (cli.username in clients_to_add_to_room and cli.username != client.username):
+                        new_room.clients.append(cli)
+                Rooms.append(new_room)
+                print("The room '{}' was created successfully at {} by '{}' from @{}:{}\n".format(new_room.name,datetime.now(),client.username,client.IP,client.port))
+                msg_success="Room '{}' created successfully!".format(room_name) 
+                Send_Message(msg_success.encode(), key, client.socket)  
+                for added_client in new_room.clients:
+                    if(added_client.username!=client.username):
+                        msg_to_added_client="You were added to the room '{}' by '{}'".format(new_room.name, client.username)
+                        Send_Message(msg_to_added_client.encode(), key, added_client.socket)
+            else:
+                msg_exit="You don't have enough clients in your room (3).\n"
+                msg_exit+="Your room wasn't created, you are now back in the chat.\n"
+                Send_Message(msg_exit.encode(), key, client.socket) 
+        else:
+            Send_Message(error_msg, key, client.socket)
+    else:
+        Send_Message(b"Please write the correct attributes after the command. Please not that to create a room, you need at least 3 users including you", key, client.socket)
+
+
+
+
+def Create_Room2(msg_recu, client, clients_connectes, client_en_envoi_fichier, Rooms):
     name_clients=[]
     error_msg=""
     for cli in clients_connectes:

@@ -40,7 +40,7 @@ def send_file(filename, filesize, connexion_avec_serveur):
 			connexion_avec_serveur.sendall(bytes_read)
 			# update the progress bar
 			print()
-			
+
 def Check_file_size (msg_a_envoyer):
 	filename=""
 	filesize = ""
@@ -122,7 +122,7 @@ def main():
 				#connexion_avec_serveur.send(msg_a_envoyer)
 				
 		try:	
-			msg_recu = Receive_Message(key, connexion_avec_serveur)		
+			msg_recu = Receive_Message(key, connexion_avec_serveur)
 			#msg_recu = connexion_avec_serveur.recv(1024)
 			msg_recu = msg_recu.decode()
 

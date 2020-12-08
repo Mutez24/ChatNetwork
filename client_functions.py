@@ -39,22 +39,21 @@ DOWNLOAD_CLIENT = "#TrfD" #Command used by clients to upload files
 #TODO TOUJOURS mettre les 3 mêmes paramètres dans chaque fonction même si on ne se sert pas des 3
 #TODO En effet les appels de fonctions sont définis par défaut avec ces paramètres dans la fonction Check_client_functions
 
-def Client_Exit (msg_recu,client, clients_connectes,client_en_envoi_fichier, Rooms):
+def Client_Exit (msg_recu,client, clients_connectes, Rooms):
     if(msg_recu == EXIT_CLIENT):
         msg_client="'{}' left the chat".format(client.username)
         print("{} @{}:{} | '{}' has left the chat \n".format(datetime.now(), client.IP, client.port, client.username)) 
 
         for element in clients_connectes:
             if (client != element):
-                Send_Message(msg_client.encode(), key, element.socket)
-                #element.socket.send(msg_client.encode())
+                Send_Message(msg_client, key, element.socket)
         clients_connectes.remove(client)
         client.socket.close()
     
     else :
         raise Exception
         
-def Client_Help (msg_recu,client, clients_connectes,client_en_envoi_fichier, Rooms):
+def Client_Help (msg_recu,client, clients_connectes, Rooms):
     if(msg_recu == HELP_CLIENT):
         msg = "You can find a list of available commands below : \n \
         #Help (list command) \n \
@@ -74,12 +73,11 @@ def Client_Help (msg_recu,client, clients_connectes,client_en_envoi_fichier, Roo
         #LeaveRoom <room name> (Allow a client to leave a room)\n \
         #ListClientRoom <room name> (Allow a client to see the members of the room)\n"
 
-        Send_Message(msg.encode(), key, client.socket, force=True)
-        #client.socket.send(msg.encode())
+        Send_Message(msg, key, client.socket, force=True)
     else:
         raise Exception
 
-def Client_ListU (msg_recu,client, clients_connectes,client_en_envoi_fichier, Rooms):
+def Client_ListU (msg_recu,client, clients_connectes, Rooms):
     if(msg_recu == LISTU_CLIENT):
         msg=("\nList of users (except you of course): \n") 
         count_user=1
@@ -89,12 +87,11 @@ def Client_ListU (msg_recu,client, clients_connectes,client_en_envoi_fichier, Ro
                 msg+=("User {}: '{}' @{}:{}\n".format(count_user, element.username, element.IP, element.port))
                 count_user+=1
         msg+="\n"
-        Send_Message(msg.encode(), key, client.socket, force=True)
-        #client.socket.send(msg.encode())
+        Send_Message(msg, key, client.socket, force=True)
     else :
         raise Exception
 
-def Client_Private(msg_recu,client, clients_connectes,client_en_envoi_fichier, Rooms):
+def Client_Private(msg_recu,client, clients_connectes, Rooms):
     client_connected_existed = False
     if(len(msg_recu.split(' ')) == 2): #on peut se permettre de verifier s'il n'y a que deux termes car le username ne peut pas contenir d'espace (regle qu'on a fixée)
         for other_client in clients_connectes:
@@ -104,27 +101,25 @@ def Client_Private(msg_recu,client, clients_connectes,client_en_envoi_fichier, R
                 client.room=other_client.username
                 msg = "\nYou entered a private chat with '{}'.\n".format(client.username) 
                 msg+="If you want to get back in the public chat, type '#Public'."
-                Send_Message(msg.encode(), key, other_client.socket)
+                Send_Message(msg, key, other_client.socket)
                 msg = "You entered a private chat with {}.\n".format(other_client.username) 
                 msg+="If you want to get back in the public chat, type '#Public'."
-                Send_Message(msg.encode(), key, client.socket)
+                Send_Message(msg, key, client.socket)
     
     if (len(msg_recu.split(' ')) == 1):
-        Send_Message(b"Please write a user's name after the command", key, client.socket)
-        #client.socket.send(b"Please write a user's name after the command")
+        Send_Message("Please write a user's name after the command", key, client.socket)
 
     if (client_connected_existed == False and len(msg_recu.split(' ')) != 1):
-        Send_Message(b"User not connected or not existing", key, client.socket)
-        #client.socket.send(b"User not connected or not existing")
+        Send_Message("User not connected or not existing", key, client.socket)
 
-def Client_Public(msg_recu,client, clients_connectes,client_en_envoi_fichier, Rooms):
+
+def Client_Public(msg_recu,client, clients_connectes, Rooms):
     if(msg_recu==PUBLIC_CLIENT):
         if(client.room != "public"):
             for other_client in clients_connectes:
                 if(other_client.username==client.room):
                     msg="'{}' left the private chat.".format(client.username)
-                    Send_Message(msg.encode(), key, other_client.socket)
-                    #other_client.socket.send(msg.encode())
+                    Send_Message(msg, key, other_client.socket)
             client.room="public"
     else:
         raise Exception
@@ -153,19 +148,25 @@ def Leave_Room(msg_recu, client, clients_connectes, client_en_envoi_fichier, Roo
 def List_Client_Room(msg_recu, client, clients_connectes, client_en_envoi_fichier, Rooms):
     List_Client_Room_RF(msg_recu, client, clients_connectes, client_en_envoi_fichier, Rooms)
                             
-def Client_Upload(msg_recu,client, clients_connectes,client_en_envoi_fichier, Rooms):
+def Client_Upload(msg_recu,client, clients_connectes, Rooms):
     filename, filesize = msg_recu.split("<>")
     filename = filename.split(" ",1)[1]
     filename = os.path.basename(filename)
     filesize = int(filesize)
     #Start File-receiver Thread 
-    client_en_envoi_fichier.append(client)
-    Send_Message(b"OK UPLOAD", key, client.socket)
+    clients_connectes.remove(client) #client connectés remove plutot
+    Send_Message("OK UPLOAD", key, client.socket)
     #client.socket.send(b"OK UPLOAD")
   
 
     filename_sans_extension, extension = filename.split(".")
-    filename_for_save = "Files/{}_{}.{}".format(filename_sans_extension,''.join(random.choices(string.ascii_letters + string.digits, k=10)), extension)
+
+    try: #Create directory to save files downloaded from server
+        os.makedirs("Files_Uploaded")
+    except:
+        pass
+
+    filename_for_save = "Files_Uploaded/{}_{}.{}".format(filename_sans_extension,''.join(random.choices(string.ascii_letters + string.digits, k=10)), extension)
     #Ajouter un code à la fin du nom de base du fichier afin d'éviter des remplacements de fichier si plusieurs ont le même nom
     sum_bytes=0
     percent=0
@@ -187,9 +188,10 @@ def Client_Upload(msg_recu,client, clients_connectes,client_en_envoi_fichier, Ro
             
             f.write(bytes_read)
         print()
-    client_en_envoi_fichier.remove(client)
+    clients_connectes.append(client)
 
-def Client_Ring(msg_recu,client, clients_connectes,client_en_envoi_fichier, Rooms):
+
+def Client_Ring(msg_recu,client, clients_connectes, Rooms):
     client_target_existed = False
     if(len(msg_recu.split(' ')) == 2): #on peut se permettre de verifier s'il n'y a que deux termes car le username ne peut pas contenir d'espace (regle qu'on a fixée)
         for other_client in clients_connectes:
@@ -197,52 +199,48 @@ def Client_Ring(msg_recu,client, clients_connectes,client_en_envoi_fichier, Room
                 client_target_existed = True
                 msg = "\nThe user : '{}' try to reach you.\n".format(client.username) 
                 Send_Message(msg.encode(), key, other_client.socket)
-                #other_client.socket.send(msg.encode())
     
     if (len(msg_recu.split(' ')) == 1):
-        Send_Message(b"Please write a user's name after the command", key, client.socket)
-        #client.socket.send(b"Please write a user's name after the command")
+        Send_Message("Please write a user's name after the command", key, client.socket)
 
     if (client_target_existed == False and len(msg_recu.split(' ')) != 1):
-        Send_Message(b"User you tried to ring is not connected or not existing", key, client.socket)
-        #client.socket.send(b"User you tried to ring is not connected or not existing")
+        Send_Message("User you tried to ring is not connected or not existing", key, client.socket)
 
-def Client_ListF(msg_recu,client, clients_connectes,client_en_envoi_fichier, Rooms):
+def Client_ListF(msg_recu,client, clients_connectes, Rooms):
     list_files = os.listdir("Files")
     msg_a_envoyer = "Liste des fichier : \n"
     for fichier in list_files:
         msg_a_envoyer+= "{} \n".format(fichier)
-    msg_a_envoyer = msg_a_envoyer.encode()
-    Send_Message(msg_a_envoyer,key,client.socket)
+    msg_a_envoyer = msg_a_envoyer
+    Send_Message(msg_a_envoyer,key,client.socket, force=True)
 
-def Client_Download(msg_recu,client, clients_connectes,client_en_envoi_fichier, Rooms):
+def Client_Download(msg_recu,client, clients_connectes, Rooms):
     filename=""
     filesize = ""
     try:
         filename = msg_recu.split(' ',1)[1]
         filesize = os.path.getsize("Files/"+filename)
         msg_a_envoyer = "#TrfD {}<>{}".format(filename,filesize)
-        msg_a_envoyer = msg_a_envoyer.encode()
+        msg_a_envoyer = msg_a_envoyer
     except:
-        msg_a_envoyer = b"#TrfD Error with file"
+        msg_a_envoyer = "#TrfD Error with file"
     Send_Message(msg_a_envoyer,key,client.socket)
 
 
     if(filesize != ""): #Si le file a bien été trouvé
         #connexion_avec_serveur.send(msg_a_envoyer)
-        client_en_envoi_fichier.append(client) # On ne veut rien lui envoyer d'autre que le fichier
+        clients_connectes.remove(client) # On ne veut rien lui envoyer d'autre que le fichier
         client_ready = False
         recu = ""
         while(not client_ready):
             try:
                 recu = Receive_Message(key, client.socket).decode()
-                #recu = connexion_avec_serveur.recv(1024).decode()
             except:
                 pass
             if(recu == "OK DOWNLOAD"): client_ready=True
-        threading.Thread(target=Thread_File_Sender, args=(filename,filesize,client,client_en_envoi_fichier,)).start()
+        threading.Thread(target=Thread_File_Sender, args=(filename,filesize,client,clients_connectes,)).start()
 
-def Thread_File_Sender (filename,filesize,client,client_en_envoi_fichier):
+def Thread_File_Sender (filename,filesize,client, client_connectes):
     
     #start sending file
     sum_bytes=0
@@ -263,7 +261,7 @@ def Thread_File_Sender (filename,filesize,client,client_en_envoi_fichier):
             
 			# update the progress bar
     print()
-    client_en_envoi_fichier.remove(client)
+    client_connectes.append(client)
     
 
 options = {
@@ -285,12 +283,12 @@ options = {
         DOWNLOAD_CLIENT : Client_Download
     }
 
-def Check_client_functions(msg_recu, client, clients_connectes, client_en_envoi_fichier, Rooms):
+def Check_client_functions(msg_recu, client, clients_connectes,  Rooms):
     commande = msg_recu.split(' ')[0]
 
     try:
-        return options[commande](msg_recu,client, clients_connectes, client_en_envoi_fichier, Rooms)
+        return options[commande](msg_recu,client, clients_connectes,  Rooms)
     except :
-        Send_Message(b"Command not found, try using #Help",key,client.socket)
+        Send_Message("Command not found, try using #Help",key,client.socket)
     
 

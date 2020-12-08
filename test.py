@@ -1,5 +1,4 @@
 import os
-
 EXIT_CLIENT = "#Exit" #Command used by clients to leave
 
 def Client_Exit (msg):
@@ -45,6 +44,56 @@ def check_for_slashN(msg):
     return " ".join(msg_split)
 
 if __name__ == '__main__':
+    cle = "salut"
+    msg = "You can find a list of available commands below : \n \
+        #Help (list command) \n \
+        #Exit (exit chat) \n \
+        #ListF (list of files in a server) \n \
+        #ListU (list of users in a server) \n \
+        #TrfU <filename if in current directory / absolute path> \n \
+        #TrfD (transfer Download file to a server) \n \
+        #Private <user> (private chat with another user) \n \
+        #Public (back to the public chat) \n \
+        #Ring <user> (notification if the user is logged in)\n \
+        #CreateRoom <room name> <user1> <user2> ... (create private chat room with multiple clients) \n \
+        #JoinRoom <room name> (Join a room the client was added to)\n \
+        #ListRoom (List all rooms the client was added to)\n \
+        #AddRoom <username> <room name> (Add a client to room)\n \
+        #KickRoom <username> <room name> (Kick a client from room)\n \
+        #LeaveRoom <room name> (Allow a client to leave a room)\n \
+        #ListClientRoom <room name> (Allow a client to see the members of the room)\n"
+    print("msg : {}".format(msg))
+    msg_a_crypter_split = msg.split("\n")
+    for i in range(len(msg_a_crypter_split)):
+        msg_a_crypter_split[i]=PolyEncryption(msg_a_crypter_split[i],cle)
+    msg_a_crypter_join = "\n".join(msg_a_crypter_split)
+
+    msg_to_decrypt_split = msg_a_crypter_join.split("\n")
+    for i in range(len(msg_to_decrypt_split)):
+        msg_to_decrypt_split[i]=PolyDecryption(msg_to_decrypt_split[i],cle)
+    msg_decrypter_join = "\n".join(msg_to_decrypt_split)
+    print("message decrypté : {}".format(msg_decrypter_join))
+
+    msg2 = "You can find a list of available commands below : \n \
+        #Help (list command) \n \
+        #Exit (exit chat) \n \
+        #ListF (list of files in a server) \n \
+        #ListU (list of users in a server) \n \
+        #TrfU <filename if in current directory / absolute path> \n \
+        #TrfD (transfer Download file to a server) \n \
+        #Private <user> (private chat with another user) \n \
+        #Public (back to the public chat) \n \
+        #Ring <user> (notification if the user is logged in)\n \
+        #CreateRoom <room name> <user1> <user2> ... (create private chat room with multiple clients) \n \
+        #JoinRoom <room name> (Join a room the client was added to)\n \
+        #ListRoom (List all rooms the client was added to)\n \
+        #AddRoom <username> <room name> (Add a client to room)\n \
+        #KickRoom <username> <room name> (Kick a client from room)\n \
+        #LeaveRoom <room name> (Allow a client to leave a room)\n \
+        #ListClientRoom <room name> (Allow a client to see the members of the room)\n"
+    
+    print("msg2 lenght : {}".format(len(msg2)))
+
     # mot = "\n ijili \n slaut \nsalot"
     # key = "dfhetede"
     # print("mot : {}".format(mot))
@@ -70,19 +119,5 @@ if __name__ == '__main__':
     # #if (msg2_split[len(msg2_split)-1] ==""):
     # #   msg2_reformer = msg2_reformer + "\n"
     # print("msg2 reformer :{}".format(msg2_reformer))
-    
-    cle = "salut"
-    msg_a_crypter = "salut \n toi"
-    print("msg : {}".format(msg_a_crypter))
-    msg_a_crypter_split = msg_a_crypter.split("\n")
-    for i in range(len(msg_a_crypter_split)):
-        msg_a_crypter_split[i]=PolyEncryption(msg_a_crypter_split[i],cle)
-    msg_a_crypter_join = "\n".join(msg_a_crypter_split)
-    print("message crypé : {}".format(msg_a_crypter_join))
 
-    msg_to_decrypt_split = msg_a_crypter_join.split("\n")
-    for i in range(len(msg_to_decrypt_split)):
-        msg_to_decrypt_split[i]=PolyDecryption(msg_to_decrypt_split[i],cle)
-    msg_decrypter_join = "\n".join(msg_to_decrypt_split)
-    print("message decrypté : {}".format(msg_decrypter_join))
 

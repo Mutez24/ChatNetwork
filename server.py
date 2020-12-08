@@ -1,26 +1,26 @@
-# Import threading libraries
+# Import librairies nécessaires au threading
 import threading
 import queue
 import time
 
-# Import sockets libraries
+# Import librairies nécessaires aux sockets
 import socket
 import select
 
-#Import DB library
+# Import librairies DB
 import sqlite3
 
-# Import display library
+# Import librairie pour affichage
 from datetime import datetime
 
-# Import Class and Manager files
+# Import classes et fichier de manage
 from ClientClass import *
 from RoomClass import *
 import client_functions
 import server_functions
 from cyphering import *
 
-# Global variables
+# Variables globales
 clients_connectes = []
 (returned_string, client_name_private) = ("","")
 private_bool = False
@@ -29,7 +29,12 @@ Rooms=[]
 key = "salut"
 
 
+'''
+#* Fonction permettant d'enregistrer dans une queue les caractères tapés par le client dans la console
+#* On l'utilise dans un thread pour permettre au client d'écrire à tout moment
 
+#TODO inputQueue : Queue utilisée pour sauvegarder les inputs du client 
+'''
 def read_kbd_input(inputQueue):
     print('Ready for keyboard input:')
     while (True):
@@ -39,6 +44,10 @@ def read_kbd_input(inputQueue):
         # Enqueue this input string.
         inputQueue.put(input_str)
 
+'''
+#* Fonction permettant de se connecter à la database et la créer si elle n'existe pas encore avec les tables nécessaires
+ 
+'''
 def creation_database():
     conn = sqlite3.connect('database_chat.db',check_same_thread=False)
     print ("Opened database successfully")
@@ -49,6 +58,14 @@ def creation_database():
     print ("Table created successfully")
     return conn
 
+'''
+#* Fonction permettant de gérer le login et le register
+#* Impossible de se connecter sur un utilisateur déjà logged
+
+#TODO connexion_avec_client : socket du client essayant de se connecter
+#TODO infos_connexion : informations de connexion du client
+#TODO conn : connexion avec la database 
+'''
 def login_register(connexion_avec_client, infos_connexion,conn):
     global clients_connectes
     msg = b""
@@ -57,6 +74,8 @@ def login_register(connexion_avec_client, infos_connexion,conn):
 
     while(client_already_connected):
         while(response != "1" and response != "2"):
+
+            # Empêche de répondre autre chose que 1 et 2
             msg = "Bienvenue, appuyez sur 1 pour vous connecter ou 2 pour creer un compte"
             Send_Message(msg, key, connexion_avec_client)
             msg = Receive_Message(key, connexion_avec_client)
@@ -64,13 +83,16 @@ def login_register(connexion_avec_client, infos_connexion,conn):
         
 
         if(response == "1"):
+            # Si le client veut se connecter avec un compte déjà existant
             unconnected = True
             client_already_connected = False
             while(unconnected):
                 msg = "Username :"
+                # Demande de username
                 Send_Message(msg, key, connexion_avec_client)
                 username = Receive_Message(key, connexion_avec_client)
                 username = username.decode()
+                # Check si le client est déjà connecté
                 for client in clients_connectes:
                     if (client.username == username):
                         client_already_connected = True
@@ -78,12 +100,14 @@ def login_register(connexion_avec_client, infos_connexion,conn):
                         Send_Message(msg, key, connexion_avec_client)
                         break
                 if (client_already_connected):
-                    response = "" #on reinitialise la reponse sinon on ne re-rentrera pas dans le premier while verifiant la reponse du user
+                    response = "" 
+                    # On réinitialise la réponse pour que le choix 1 ou 2 soit de nouveau proposé au client
                     break
                 msg = "Password :"
                 Send_Message(msg, key, connexion_avec_client)
                 password = Receive_Message(key, connexion_avec_client)
                 password = password.decode()
+                # Check du password
                 cursor = conn.execute("SELECT * FROM user WHERE USERNAME = '{}' AND PASSWORD = '{}'".format(username,password))
                 conn.commit()
                 if(cursor.fetchone() != None):
@@ -93,11 +117,12 @@ def login_register(connexion_avec_client, infos_connexion,conn):
                 else:
                     msg = "Wrong credentials\n"
                     Send_Message(msg, key, connexion_avec_client)
-                    unconnected = False #on laisse la possibilité de se créer un compte si jamais
+                    unconnected = False 
+                    # On laisse la possibilité de se créer un compte si jamais
                     response = ""
                     client_already_connected=True
                 
-                    
+        # Création de compte
         if(response == "2"):
             unconnected = True
             client_already_connected = False
@@ -120,26 +145,39 @@ def login_register(connexion_avec_client, infos_connexion,conn):
                     unconnected = False
                     msg = "Creation de compte reussie, bienvenue dans le chat public"
                     Send_Message(msg, key, connexion_avec_client)
+
                 except sqlite3.IntegrityError:
                     msg = "Username already existing"
                     Send_Message(msg, key, connexion_avec_client)
-                    unconnected = False #on laisse la possibilité de se créer un compte si jamais
+                    unconnected = False 
+                    #On laisse la possibilité de se créer un compte si jamais
                     response = ""
                     client_already_connected=True
-                 
+
+    # Création d'une entité client et ajout à la liste des clients connectés
     CurrentClient = Client(username,infos_connexion[0],infos_connexion[1],connexion_avec_client)
     clients_connectes.append(CurrentClient)
+    # Log server
     print("\nUser '{}' connected at {} from @{}:{} \n".format(CurrentClient.username,datetime.now(),CurrentClient.IP,CurrentClient.port))
 
+'''
+#* Fonction permettant au server de communiquer en privé avec un client défini
+
+#TODO clients_connectes : liste des clients connectés
+#TODO input_str : input du server
+'''
 def private_server_client(clients_connectes,input_str):
     global returned_string, private_bool, client_name_private
     for client in clients_connectes:
         if(client.username == client_name_private):
+            # On cherche le client à qui on a décidé de parler en privé
             if (input_str == end_private_message):
+                # On ferme la communication avec le client
                 print("You ended the conversation with '{}' ".format(client_name_private))
                 (returned_string, client_name_private) = ("","")
                 private_bool = False
             else:
+                # On envoie le message privé
                 msg = "PRIVATE MESSAGE FROM SERVER : " + input_str
                 Send_Message(msg, key, client.socket)
 
@@ -191,7 +229,7 @@ def Create_Room_Server(client, room_name):
     clients_connectes.append(client)
 
 def main():
-    #Define global variables
+    #Definition des variables globales afin de pouvoir les modifier
     global clients_connectes, returned_string, private_bool, client_name_private
 
 
@@ -205,12 +243,9 @@ def main():
 
     #! DATABASE CREATION
     conn = creation_database()
-    #Keyboard input queue to pass data from the thread reading the keyboard inputs to the main thread.
     inputQueue = queue.Queue()
 
-    # Create & start a thread to read keyboard inputs.
-    # Set daemon to True to auto-kill this thread when all other non-daemonic threads are exited. This is desired since
-    # this thread has no cleanup to do, which would otherwise require a more graceful approach to clean up then exit.
+    # Création du thread pour récupérer les input du server
     inputThread = threading.Thread(target=read_kbd_input, args=(inputQueue,), daemon=True)
     inputThread.start()
 
@@ -232,17 +267,18 @@ def main():
             pass
 
 
-        #! Read keyboard inputs
+        #! Lecture des inputs
         if (inputQueue.qsize() > 0):
             input_str = inputQueue.get()
 
-            #! Check if the server wants to talk to a client
+            #! Check si le server veut parler en privé à un client
             if (private_bool):
                 private_server_client(clients_connectes,input_str)
 
-            #TODO Insert your code here to do whatever you want with the input_str.
-            try: #S'il n'y a pas de try except, le code va planter si on appuie juste sur entrée
+            try: 
+                #S'il n'y a pas de try except, le code va planter si on appuie juste sur entrée
                 if (input_str[0] == "#"):
+                    #Vérification des commandes server
                     (returned_string, client_name_private) = server_functions.Check_server_functions(input_str,clients_connectes,connexion_principale,connexions_demandees)
                     if (returned_string == "exit"):              
                         break            
@@ -269,8 +305,8 @@ def main():
             # On parcourt la liste des clients à lire
             for client in clients_a_lire:
                 # Client est de type Client
-                # Empecher un crash si un client ferme sa fenetre avec la croix
                 msg_recu="" #Définition de la variable
+                # Empecher un crash si un client ferme sa fenetre avec la croix
                 try:
                     msg_recu = Receive_Message(key, client.socket)
                 except ConnectionResetError: #Type d'erreur soulevé quand un client ferme de force sa fenêtre
@@ -313,7 +349,9 @@ def main():
                     for receveur_client in clients_connectes:
                         if(client != receveur_client):
                             msg_a_envoyer = "Public: '{}' > {}".format(client.username,msg_recu)
-                            Send_Message(msg_a_envoyer, key, receveur_client.socket) #Envoi du msg reçu sur le channel public
+                            Send_Message(msg_a_envoyer, key, receveur_client.socket) 
+                            #Envoi du msg reçu sur le channel public
+                    # Affichage des logs
                     print("{} @{}:{} | '{}' > {} \n".format(datetime.now(), client.IP, client.port, client.username, msg_recu)) #Affichage côté serveur
                 
 

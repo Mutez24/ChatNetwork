@@ -13,12 +13,10 @@ key = "salut"
 import os
 
 '''
-
 #* Fonction permettant d'enregistrer dans une queue les caractères tapés par le client dans la console
 #* On l'utilise dans un thread pour permettre au client d'écrire à tout moment
 
 #TODO inputQueue : Queue utilisée pour sauvegarder les inputs du client 
-
 '''
 def read_kbd_input(inputQueue):
     print('Ready for keyboard input:')
@@ -31,13 +29,11 @@ def read_kbd_input(inputQueue):
         inputQueue.put(input_str)
 
 '''
-
 #* Fonction permettant d'envoyer un fichier au serveur
 
 #TODO filename : nom de sauvegarde du fichier
 #TODO filesize : taille du fichier en byte
 #TODO connexion_avec_serveur : socket serveur
-
 '''
 def send_file(filename, filesize, connexion_avec_serveur):
 	# Début de l'envoi du fichier
@@ -59,12 +55,10 @@ def send_file(filename, filesize, connexion_avec_serveur):
 			print()
 
 '''
-
 #* Fonction permettant d'obtenir filename, filesize et générer un message pour le serveur pour l'upload d'un fichier
 #* Renvoi un filesize "" si le fichier est introuvable
 
 #TODO msg_a_envoyer : Message sous la forme #TrfU <filename>
-
 '''
 
 def Check_file_size (msg_a_envoyer):
@@ -81,11 +75,9 @@ def Check_file_size (msg_a_envoyer):
 	return msg_a_envoyer,filename,filesize
 
 '''
-
 #* Fonction permettant de sauvegarder un fichier envoyé par le serveur dans le cas d'un Download
 
 #TODO msg_recu : "Error with file" en cas d'erreur, sinon <filename><><filesize>
-
 '''
 
 def save_file(msg_recu, connexion_avec_serveur):

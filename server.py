@@ -77,7 +77,6 @@ def login_register(connexion_avec_client, infos_connexion,conn):
     try:
         # On met un try car si un client est en cours de connexion alors que le server se ferme, sa socket va être fermée
         # Dès lors, toutes les fonctions Receive_Message et Send_Message vont crasher
-        # On anticipe donc cela avec un except personnalisé
         while(client_already_connected):
             while(response != "1" and response != "2"):
 
@@ -165,7 +164,7 @@ def login_register(connexion_avec_client, infos_connexion,conn):
         print("\nUser '{}' connected at {} from @{}:{} \n".format(CurrentClient.username,datetime.now(),CurrentClient.IP,CurrentClient.port))
 
 
-    except ConnectionAbortedError:
+    except:
         pass
         
     

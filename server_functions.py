@@ -3,6 +3,7 @@ import socket
 
 #Import display libraries
 from datetime import datetime
+import time
 
 #Import cyphering key
 from cyphering import *
@@ -36,11 +37,13 @@ def Server_Exit(input_server, clients_connectes,connexion_principale,clients_awa
         #On va fermer toutes les sockets des clients connectés et leur envoyer un message pour pouvoir sortir de la boucle while(true) dans client.py
         for client in clients_connectes:
             Send_Message("Server shutdown", key, client.socket)
+            time.sleep(0.5)
             client.socket.close()
 
         #On va fermer toutes les sockets des clients en attente de connexion et leur envoyer un message pour pouvoir sortir de la boucle while(true) dans client.py
         for socket in clients_awaiting_connection:
             Send_Message("Server shutdown", key, socket)
+            time.sleep(0.5)
             socket.close()
 
         #On ferme aussi la socket du server

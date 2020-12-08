@@ -21,8 +21,8 @@ PRIVATE_SERVER = "#Private" #Commande utilisée par le serveur pour envoyer un m
 LISTF_SERVER = "#ListF" #Commande utilisée par le serveur pour vérifier tous les fichiers existants dans le répertoire Files
 
 #! Hints :
-#TODO TOUJOURS mettre les 3 mêmes paramètres dans chaque fonction même si on ne se sert pas des 3
-#TODO En effet les appels de fonctions sont définis par défaut avec ces paramètres dans la fonction Check_client_functions
+#? TOUJOURS mettre les 3 mêmes paramètres dans chaque fonction même si on ne se sert pas des 3
+#? En effet les appels de fonctions sont définis par défaut avec ces paramètres dans la fonction Check_client_functions
 
 '''
 #* Fonction permettant de shutdown le server ce qui aura pour impact de shutdown tous les users connectés également

@@ -190,6 +190,9 @@ def main():
 			# On évite ainsi de rester bloqués dans le recv, ce qui nous emêcherait d'écrire plusieurs messages
 			# avant une réception
 			pass
+		except ConnectionResetError :
+			# Cette erreur est soulevée quand le serveur se déconnecte intempestivement
+			break
 		
 	print("Fermeture de la connexion")
 	connexion_avec_serveur.close()

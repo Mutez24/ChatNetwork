@@ -427,7 +427,13 @@ def Client_Upload(msg_recu,client, clients_connectes, Rooms):
   
 
     filename_sans_extension, extension = filename.split(".")
-    filename_for_save = "Files/{}_{}.{}".format(filename_sans_extension,''.join(random.choices(string.ascii_letters + string.digits, k=10)), extension)
+
+    try: #Create directory to save files downloaded from server
+        os.makedirs("Files_Uploaded")
+    except:
+        pass
+
+    filename_for_save = "Files_Uploaded/{}_{}.{}".format(filename_sans_extension,''.join(random.choices(string.ascii_letters + string.digits, k=10)), extension)
     #Ajouter un code à la fin du nom de base du fichier afin d'éviter des remplacements de fichier si plusieurs ont le même nom
     sum_bytes=0
     percent=0

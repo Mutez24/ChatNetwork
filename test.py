@@ -1,5 +1,5 @@
 import os
-
+'''
 EXIT_CLIENT = "#Exit" #Command used by clients to leave
 
 def Client_Exit (msg):
@@ -85,4 +85,7 @@ if __name__ == '__main__':
         msg_to_decrypt_split[i]=PolyDecryption(msg_to_decrypt_split[i],cle)
     msg_decrypter_join = "\n".join(msg_to_decrypt_split)
     print("message decrypté : {}".format(msg_decrypter_join))
+
+'''
+
 

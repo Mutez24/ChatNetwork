@@ -61,7 +61,11 @@ def save_file(msg_recu, connexion_avec_serveur):
 	else:
 		filename, filesize = msg_recu.split("<>")
 		filesize =  int(filesize)
-		filename_for_save = "Download_Server/" + filename
+		try: #Create directory to save files downloaded from server
+			os.makedirs("Files_Downloaded_from_server")
+		except:
+			pass
+		filename_for_save = "Files_Downloaded_from_server/" + filename
 		Send_Message(b"OK DOWNLOAD", key, connexion_avec_serveur)
 		sum_bytes=0
 		percent=0

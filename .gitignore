@@ -2,5 +2,5 @@
 .DS_Store
 *.db
 *.json
-Files
-Download_Server
+Files_Downloaded_from_server
+Files_Uploaded

@@ -1,6 +1,11 @@
 # Import sockets libraries
 import socket
 
+
+#* Fonction qui permet de crypter un string à partir d'une clé
+#* Prend en paramètre le string à crypter et la clé
+#* Retourne le string crypté
+
 def PolyEncryption(to_encrypt, key):
     encrypted = ""
     size=len(key)
@@ -11,6 +16,11 @@ def PolyEncryption(to_encrypt, key):
         encrypted+=(chr(new_ascii))
     return encrypted
         
+
+#* Fonction qui permet de décrypter un string à partir d'une clé
+#* Prend en paramètre le string à décrypter et la clé
+#* Retourne le string décrypté
+
 def PolyDecryption(to_decrypt, key):
     decrypted = ""
     size=len(key)
@@ -22,39 +32,43 @@ def PolyDecryption(to_decrypt, key):
         decrypted+=(chr(old_ascii))
     return decrypted     
 
+
+#* Fonction qui permet de gérer les envoie de messages (remplace la fonction socket.send de la librairie socket)
+#* Permet de faire l'encryption du message et la vérification de taille du message
+#* Prend en paramètre le string à envoyer, la clé de cryptage, la socket à qui on envoie le message
+#* et le paramètre force qui permet de forcer l'envoie d'un message si celui-ci fait plus de 280 caractères
+
 def Send_Message(msg_encode, key, socket, force= False):
     #Si le message est trop long on retourne un message d'erreur
     if (len(msg_encode)>280 and not force):
         print("Your message is too long to be sent (over 280 character)")
     #Sinon on l'envoie
-
-    #! Pour le bug des \n qui se transforment en "i" tu peux split le message de base sur les \n, encoder les
-    #! différents morceaux puis les recoller en remettant des \n entre
-    #! Inversement pour la décryption
-    #! Sinon tu modifies tes fonctions crypt décrypt
     else:
+        # On split le message pour gérer les "\n" car il ne fonctionne pas à l'encryption
         msg_a_crypter_split = msg_encode.split("\n")
         for i in range(len(msg_a_crypter_split)):
             msg_a_crypter_split[i]=PolyEncryption(msg_a_crypter_split[i],key)
         msg_crypter_join = "\n".join(msg_a_crypter_split)
-        #msg_crypted = PolyEncryption(msg, key)
-        #Pour montrer que ca fonctionne bien
-        #print("message crypté envoyé :{}".format(msg_crypted))
+        # Une fois le message crypter, on l'encode pour l'envoyer avec la fonction .send
         msg_to_send = msg_crypter_join.encode()
         socket.send(msg_to_send)
     
 
+#* Fonction qui permet de gérer les messages recu (remplace la fonction socket.recv de la librairie socket)
+#* Permet de faire la decrytption du message envoyé
+#* Prend en paramètre la clé de cryptage et la socket qui recoit le message
+#* Retourne le message recu (en byte)
+
 def Receive_Message(key, socket):
-    
+    # On recoit le message
     msg = socket.recv(2000)
     msg = msg.decode()
+    # On split le message pour gérer les "\n" car il ne fonctionne pas à l'encryption
     msg_to_decrypt_split = msg.split("\n")
     for i in range(len(msg_to_decrypt_split)):
         msg_to_decrypt_split[i]=PolyDecryption(msg_to_decrypt_split[i],key)
     msg_decrypter_join = "\n".join(msg_to_decrypt_split)
-    #Pour montrer que ca fonctionne bien
-    #print("message crypté recu : {}".format(msg))
-    #msg_decrypted = PolyDecryption(msg, key)
+    # On encode le message avant de le return pour repecter le format
     final_msg = msg_decrypter_join.encode()
     return final_msg
 

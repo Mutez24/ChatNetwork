@@ -13,7 +13,7 @@ import sqlite3
 # Import librairie pour affichage
 from datetime import datetime
 
-# Import classes et fichier de manage
+# Import nedded files
 from ClientClass import *
 from RoomClass import *
 import client_functions
@@ -22,6 +22,7 @@ from cyphering import *
 
 # Variables globales
 clients_connectes = []
+clients_awaiting_connection = []
 (returned_string, client_name_private) = ("","")
 private_bool = False
 end_private_message = "end"
@@ -33,7 +34,7 @@ key = "salut"
 #* Fonction permettant d'enregistrer dans une queue les caractères tapés par le client dans la console
 #* On l'utilise dans un thread pour permettre au client d'écrire à tout moment
 
-#TODO inputQueue : Queue utilisée pour sauvegarder les inputs du client 
+#? inputQueue : Queue utilisée pour sauvegarder les inputs du client 
 '''
 def read_kbd_input(inputQueue):
     print('Ready for keyboard input:')
@@ -44,9 +45,9 @@ def read_kbd_input(inputQueue):
         # Enqueue this input string.
         inputQueue.put(input_str)
 
+
 '''
 #* Fonction permettant de se connecter à la database et la créer si elle n'existe pas encore avec les tables nécessaires
- 
 '''
 def creation_database():
     conn = sqlite3.connect('database_chat.db',check_same_thread=False)
@@ -58,13 +59,14 @@ def creation_database():
     print ("Table created successfully")
     return conn
 
+
 '''
 #* Fonction permettant de gérer le login et le register
 #* Impossible de se connecter sur un utilisateur déjà logged
 
-#TODO connexion_avec_client : socket du client essayant de se connecter
-#TODO infos_connexion : informations de connexion du client
-#TODO conn : connexion avec la database 
+#? connexion_avec_client : socket du client essayant de se connecter
+#? infos_connexion : informations de connexion du client
+#? conn : connexion avec la database 
 '''
 def login_register(connexion_avec_client, infos_connexion,conn):
     global clients_connectes
@@ -152,10 +154,13 @@ def login_register(connexion_avec_client, infos_connexion,conn):
     # Création d'une entité client et ajout à la liste des clients connectés
     CurrentClient = Client(username,infos_connexion[0],infos_connexion[1],connexion_avec_client)
     clients_connectes.append(CurrentClient)
+
+    # On supprime le client, dont la connexion vient d'être accepté, de la liste des clients en attente
+    clients_awaiting_connection.remove(connexion_avec_client)
     # Log server
     print("\nUser '{}' connected at {} from @{}:{} \n".format(CurrentClient.username,datetime.now(),CurrentClient.IP,CurrentClient.port))
     
-
+''' fonction non utilisé à ce jour mais aurait pu l'être avec Create_Room2_RF dans romm_functions.py si le tout avait été plus fonctionnel
 def Create_Room_Server(client, room_name):
     global Rooms
     new_room=Room(room_name,client)
@@ -202,10 +207,12 @@ def Create_Room_Server(client, room_name):
                     Send_Message(msg_exit, key, client.socket)
                     break
     clients_connectes.append(client)
+'''
+
 
 def main():
     #Definition des variables globales afin de pouvoir les modifier
-    global clients_connectes, returned_string, private_bool, client_name_private
+    global clients_connectes, returned_string, private_bool, client_name_private, clients_awaiting_connection
 
 
     #! Set up socket variables
@@ -225,7 +232,7 @@ def main():
     inputThread.start()
 
 
-    #TODO Main loop
+    #* Main loop
     while (True):                
 
         # On va vérifier que de nouveaux clients ne demandent pas à se connecter
@@ -236,6 +243,7 @@ def main():
         
             for connexion in connexions_demandees:
                 connexion_avec_client, infos_connexion = connexion.accept()
+                clients_awaiting_connection.append(connexion_avec_client)
                 # On lance un thread qui va demander au client ses identifiants ou de se créer un compte
                 (threading.Thread(target=login_register, args=(connexion_avec_client,infos_connexion,conn,), daemon=True)).start()
         except :
@@ -250,7 +258,7 @@ def main():
                 #S'il n'y a pas de try except et qu'on appuie sur entrée, le code plante
                 if (input_str[0] == "#"):
                     #Vérification des commandes server
-                    if (server_functions.Check_server_functions(input_str,clients_connectes,connexion_principale) == "exit"):              
+                    if (server_functions.Check_server_functions(input_str,clients_connectes,connexion_principale,clients_awaiting_connection) == "exit"):              
                         break
             except:
                 pass

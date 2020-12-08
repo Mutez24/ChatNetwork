@@ -1,6 +1,7 @@
 # Import display library
 from datetime import datetime
 
+# Import nedded files
 from cyphering import *
 from RoomClass import *
 from ClientClass import *
@@ -41,6 +42,8 @@ def Create_Room_RF(msg_recu, client, clients_connectes, Rooms):
     else:
         Send_Message("Please write the correct attributes after the command. \nPlease note that to create a room, you need at least 3 users including you.\n", key, client.socket)
 
+
+''' fonction non utilisé à ce jour mais aurait pu l'être avec Create_Room_Server dans server.py si le tout avait été plus fonctionnel
 def Create_Room2_RF(msg_recu, client, clients_connectes, Rooms):
     name_clients=[]
     error_msg=""
@@ -87,6 +90,8 @@ def Join_Room_RF(msg_recu, client, clients_connectes, Rooms):
         Send_Message("Please write a room name after the command.\n", key, client.socket)
     else:
         raise Exception
+'''
+
 
 def Add_Room_RF(msg_recu, client, clients_connectes, Rooms):
     if(len(msg_recu.split(' ')) > 2):

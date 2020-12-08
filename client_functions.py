@@ -48,7 +48,7 @@ LIST_CLIENT_CHATROOM_CLIENT="#ListClientRoom" #Commande utilisée par les client
 '''
 #* Fonction qui permet a un client de shutdown son terminal (de quitter l'application)
 
-#? msg_recu : message ecrit par un client
+#? msg_recu : input ecrit par un client
 #? client : client qui a ecrit le message
 #? clients_connectés : liste qui contient les clients connectés
 #? Rooms : liste de toutes les room
@@ -75,10 +75,10 @@ def Client_Exit (msg_recu,client, clients_connectes, Rooms):
 '''
 #* Fonction qui permet a un client d'avoir accès a la liste des commandes qu'il peut effectuer
 
-#TODO msg_recu : message ecrit par un client
-#TODO client : client qui a ecrit le message
-#TODO clients_connectés : liste qui contient les clients connectés
-#TODO Rooms : azerty
+#? msg_recu : input ecrit par un client
+#? client : client qui a ecrit le message
+#? clients_connectés : liste qui contient les clients connectés
+#? Rooms : liste de toutes les room
 '''
 
 def Client_Help (msg_recu,client, clients_connectes, Rooms):
@@ -110,10 +110,10 @@ def Client_Help (msg_recu,client, clients_connectes, Rooms):
 '''
 #* Fonction qui permet a un client d'avoir accès a la liste des clients conectés
 
-#TODO msg_recu : message ecrit par un client
-#TODO client : client qui a ecrit le message
-#TODO clients_connectés : liste qui contient les clients connectés
-#TODO Rooms : azerty
+#? msg_recu : input ecrit par un client
+#? client : client qui a ecrit le message
+#? clients_connectés : liste qui contient les clients connectés
+#? Rooms : liste de toutes les room
 '''
 
 def Client_ListU (msg_recu,client, clients_connectes, Rooms):
@@ -135,10 +135,10 @@ def Client_ListU (msg_recu,client, clients_connectes, Rooms):
 '''
 #* Fonction qui permet a un client d'envoyer un message privé à un autre client
 
-#TODO msg_recu : message ecrit par un client
-#TODO client : client qui a ecrit le message
-#TODO clients_connectés : liste qui contient les clients connectés
-#TODO Rooms : azerty
+#? msg_recu : input ecrit par un client
+#? client : client qui a ecrit le message
+#? clients_connectés : liste qui contient les clients connectés
+#? Rooms : liste de toutes les room
 '''
 
 def Client_Private(msg_recu,client, clients_connectes, Rooms):
@@ -169,10 +169,10 @@ def Client_Private(msg_recu,client, clients_connectes, Rooms):
 '''
 #* Fonction qui permet a un client qui était dans une room de revenir dans le chat public
 
-#TODO msg_recu : message ecrit par un client
-#TODO client : client qui a ecrit le message
-#TODO clients_connectés : liste qui contient les clients connectés
-#TODO Rooms : azerty
+#? msg_recu : input ecrit par un client
+#? client : client qui a ecrit le message
+#? clients_connectés : liste qui contient les clients connectés
+#? Rooms : liste de toutes les room
 '''
 
 def Client_Public(msg_recu,client, clients_connectes, Rooms):
@@ -194,10 +194,10 @@ def Client_Public(msg_recu,client, clients_connectes, Rooms):
 #* Fonction qui fait appel a la fonction List_Room_RF
 #* permet a un client de voir la liste des rooms dont il fait partis
 
-#TODO msg_recu : message ecrit par un client
-#TODO client : client qui a ecrit le message
-#TODO clients_connectés : liste qui contient les clients connectés
-#TODO Rooms : azerty
+#? msg_recu : input ecrit par un client
+#? client : client qui a ecrit le message
+#? clients_connectés : liste qui contient les clients connectés
+#? Rooms : liste de toutes les room
 '''
 
 '''
@@ -215,10 +215,10 @@ def List_Room(msg_recu, client, clients_connectes, Rooms):
 #* Fonction qui fait appel a la fonction Create_Room_RF
 #* permet a un client de créer une room
 
-#TODO msg_recu : message ecrit par un client
-#TODO client : client qui a ecrit le message
-#TODO clients_connectés : liste qui contient les clients connectés
-#TODO Rooms : azerty
+#? msg_recu : input ecrit par un client
+#? client : client qui a ecrit le message
+#? clients_connectés : liste qui contient les clients connectés
+#? Rooms : liste de toutes les room
 '''
 
 def Create_Room(msg_recu, client, clients_connectes, Rooms):
@@ -228,10 +228,10 @@ def Create_Room(msg_recu, client, clients_connectes, Rooms):
 #* Fonction qui fait appel a la fonction Create_Room_2RF
 #* permet a un client de créer une room
 
-#TODO msg_recu : message ecrit par un client
-#TODO client : client qui a ecrit le message
-#TODO clients_connectés : liste qui contient les clients connectés
-#TODO Rooms : azerty
+#? msg_recu : input ecrit par un client
+#? client : client qui a ecrit le message
+#? clients_connectés : liste qui contient les clients connectés
+#? Rooms : liste de toutes les room
 '''
 
 def Create_Room2(msg_recu, client, clients_connectes, Rooms):
@@ -241,10 +241,10 @@ def Create_Room2(msg_recu, client, clients_connectes, Rooms):
 #* Fonction qui fait appel a la fonction Join_Room_RF
 #* permet a un client de rejoindre une room
 
-#TODO msg_recu : message ecrit par un client
-#TODO client : client qui a ecrit le message
-#TODO clients_connectés : liste qui contient les clients connectés
-#TODO Rooms : azerty
+#? msg_recu : input ecrit par un client
+#? client : client qui a ecrit le message
+#? clients_connectés : liste qui contient les clients connectés
+#? Rooms : liste de toutes les room
 '''
 
 def Join_Room(msg_recu, client, clients_connectes, Rooms):
@@ -254,10 +254,10 @@ def Join_Room(msg_recu, client, clients_connectes, Rooms):
 #* Fonction qui fait appel a la fonction Add_Room_RF
 #* permet a un client admin d'ajouter un autre client à sa room
 
-#TODO msg_recu : message ecrit par un client
-#TODO client : client qui a ecrit le message
-#TODO clients_connectés : liste qui contient les clients connectés
-#TODO Rooms : azerty
+#? msg_recu : input ecrit par un client
+#? client : client qui a ecrit le message
+#? clients_connectés : liste qui contient les clients connectés
+#? Rooms : liste de toutes les room
 '''
 
 def Add_Room(msg_recu, client, clients_connectes, Rooms):
@@ -268,10 +268,10 @@ def Add_Room(msg_recu, client, clients_connectes, Rooms):
 #* Fonction qui fait appel a la fonction Kick_Room_RF
 #* permet a un client admin de retirer un autre client de sa room
 
-#TODO msg_recu : message ecrit par un client
-#TODO client : client qui a ecrit le message
-#TODO clients_connectés : liste qui contient les clients connectés
-#TODO Rooms : azerty
+#? msg_recu : input ecrit par un client
+#? client : client qui a ecrit le message
+#? clients_connectés : liste qui contient les clients connectés
+#? Rooms : liste de toutes les room
 '''
 
 def Kick_Room(msg_recu, client, clients_connectes, Rooms):
@@ -281,10 +281,10 @@ def Kick_Room(msg_recu, client, clients_connectes, Rooms):
 #* Fonction qui fait appel a la fonction Leave_Room_RF
 #* permet a un client de se retirer de sa room
 
-#TODO msg_recu : message ecrit par un client
-#TODO client : client qui a ecrit le message
-#TODO clients_connectés : liste qui contient les clients connectés
-#TODO Rooms : azerty
+#? msg_recu : input ecrit par un client
+#? client : client qui a ecrit le message
+#? clients_connectés : liste qui contient les clients connectés
+#? Rooms : liste de toutes les room
 '''
 
 def Leave_Room(msg_recu, client, clients_connectes, Rooms):
@@ -294,10 +294,10 @@ def Leave_Room(msg_recu, client, clients_connectes, Rooms):
 #* Fonction qui fait appel a la fonction List_Client_Room_RF
 #* permet a un client de voir la liste des clients present dans une room
 
-#TODO msg_recu : message ecrit par un client
-#TODO client : client qui a ecrit le message
-#TODO clients_connectés : liste qui contient les clients connectés
-#TODO Rooms : azerty
+#? msg_recu : input ecrit par un client
+#? client : client qui a ecrit le message
+#? clients_connectés : liste qui contient les clients connectés
+#? Rooms : liste de toutes les room
 '''
 
 def List_Client_Room(msg_recu, client, clients_connectes, Rooms):
@@ -306,10 +306,10 @@ def List_Client_Room(msg_recu, client, clients_connectes, Rooms):
 '''
 #* Fonction qui permet à un client d'upload un fichier
 
-#TODO msg_recu : message ecrit par un client
-#TODO client : client qui a ecrit le message
-#TODO clients_connectés : liste qui contient les clients connectés
-#TODO Rooms : azerty
+#? msg_recu : input ecrit par un client
+#? client : client qui a ecrit le message
+#? clients_connectés : liste qui contient les clients connectés
+#? Rooms : liste de toutes les room
 '''
 
 def Client_Upload(msg_recu,client, clients_connectes, Rooms):
@@ -358,10 +358,10 @@ def Client_Upload(msg_recu,client, clients_connectes, Rooms):
 '''
 #* Fonction qui permet à un client de notifier un autre client
 
-#TODO msg_recu : message ecrit par un client
-#TODO client : client qui a ecrit le message
-#TODO clients_connectés : liste qui contient les clients connectés
-#TODO Rooms : azerty
+#? msg_recu : input ecrit par un client
+#? client : client qui a ecrit le message
+#? clients_connectés : liste qui contient les clients connectés
+#? Rooms : liste de toutes les room
 '''
 
 def Client_Ring(msg_recu,client, clients_connectes, Rooms):
@@ -387,10 +387,10 @@ def Client_Ring(msg_recu,client, clients_connectes, Rooms):
 '''
 #* Fonction qui permet à un client de voir tous les fichiers
 
-#TODO msg_recu : message ecrit par un client
-#TODO client : client qui a ecrit le message
-#TODO clients_connectés : liste qui contient les clients connectés
-#TODO Rooms : azerty
+#? msg_recu : input ecrit par un client
+#? client : client qui a ecrit le message
+#? clients_connectés : liste qui contient les clients connectés
+#? Rooms : liste de toutes les room
 '''
 
 def Client_ListF(msg_recu,client, clients_connectes, Rooms):
@@ -405,10 +405,10 @@ def Client_ListF(msg_recu,client, clients_connectes, Rooms):
 '''
 #* Fonction qui permet à un client de download un fichier
 
-#TODO msg_recu : message ecrit par un client
-#TODO client : client qui a ecrit le message
-#TODO clients_connectés : liste qui contient les clients connectés
-#TODO Rooms : azerty
+#? msg_recu : input ecrit par un client
+#? client : client qui a ecrit le message
+#? clients_connectés : liste qui contient les clients connectés
+#? Rooms : liste de toutes les room
 '''
 
 def Client_Download(msg_recu,client, clients_connectes, Rooms):
@@ -441,8 +441,9 @@ def Client_Download(msg_recu,client, clients_connectes, Rooms):
 '''
 #* Fonction permettant 
 
-#? msg_recu : input du client
-#? clients_connectes : liste des clients connectés
+#? msg_recu : input ecrit par un client
+#? client : client qui a ecrit le message
+#? clients_connectés : liste qui contient les clients connectés
 #? Rooms : liste de toutes les room
 '''
 def Thread_File_Sender (filename,filesize,client, client_connectes):
@@ -497,8 +498,9 @@ options = {
 '''
 #* Fonction principale redirigeant vers la fonction adéquat de ce fichier par rapport à l'input client
 
-#? msg_recu : input du client
-#? clients_connectes : liste des clients connectés
+#? msg_recu : input ecrit par un client
+#? client : client qui a ecrit le message
+#? clients_connectés : liste qui contient les clients connectés
 #? Rooms : liste de toutes les room
 '''
 def Check_client_functions(msg_recu, client, clients_connectes,  Rooms):

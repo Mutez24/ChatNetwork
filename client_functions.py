@@ -53,7 +53,6 @@ LIST_CLIENT_CHATROOM_CLIENT="#ListClientRoom" #Commande utilisée par les client
 #? clients_connectés : liste qui contient les clients connectés
 #? Rooms : liste de toutes les room
 '''
-
 def Client_Exit (msg_recu,client, clients_connectes, Rooms):
     if(msg_recu == EXIT_CLIENT):
         # On notifie sur le serveur et tous les clients que le client a quitter le chat
@@ -80,7 +79,6 @@ def Client_Exit (msg_recu,client, clients_connectes, Rooms):
 #? clients_connectés : liste qui contient les clients connectés
 #? Rooms : liste de toutes les room
 '''
-
 def Client_Help (msg_recu,client, clients_connectes, Rooms):
     # Message qui affiche la liste des commandes
     if(msg_recu == HELP_CLIENT):
@@ -107,21 +105,21 @@ def Client_Help (msg_recu,client, clients_connectes, Rooms):
     else:
         raise Exception
 
+
 '''
-#* Fonction qui permet a un client d'avoir accès a la liste des clients conectés
+#* Fonction qui permet a un client d'avoir accès a la liste des clients connectés
 
 #? msg_recu : input ecrit par un client
 #? client : client qui a ecrit le message
 #? clients_connectés : liste qui contient les clients connectés
 #? Rooms : liste de toutes les room
 '''
-
 def Client_ListU (msg_recu,client, clients_connectes, Rooms):
     if(msg_recu == LISTU_CLIENT):
         msg=("\nList of users (except you of course): \n") 
         count_user=1
 
-        # On parcours la liste des clients (excepté le client qui execute la commande) pour les stockés dans un string
+        # On parcourt la liste des clients (excepté le client qui execute la commande) pour les stocker dans un string
         for element in clients_connectes:
             if (client != element):
                 msg+=("User {}: '{}' @{}:{}\n".format(count_user, element.username, element.IP, element.port))
@@ -132,6 +130,7 @@ def Client_ListU (msg_recu,client, clients_connectes, Rooms):
     else :
         raise Exception
 
+
 '''
 #* Fonction qui permet a un client d'envoyer un message privé à un autre client
 
@@ -140,17 +139,16 @@ def Client_ListU (msg_recu,client, clients_connectes, Rooms):
 #? clients_connectés : liste qui contient les clients connectés
 #? Rooms : liste de toutes les room
 '''
-
 def Client_Private(msg_recu,client, clients_connectes, Rooms):
     client_connected_existed = False
     #on peut se permettre de verifier s'il n'y a que deux termes car le username ne peut pas contenir d'espace (regle qu'on a fixée)
     if(len(msg_recu.split(' ')) == 2):
-        # On parcour la liste des clients connectés pour trouver le client à joindre en privé
+        # On parcourt la liste des clients connectés pour trouver le client à joindre en privé
         for other_client in clients_connectes:
             if (other_client.username == msg_recu.split(' ')[1]):
                 # Si le client existe, indicateur passe a True
                 client_connected_existed = True
-                # Les room de chacun deviennent les usernames de l'autre
+                # L'attribut room de chacun des clients deviennent les usernames de l'autre
                 other_client.room=client.username
                 client.room=other_client.username
                 msg = "\nYou entered a private chat with '{}'.\n".format(client.username) 
@@ -166,21 +164,21 @@ def Client_Private(msg_recu,client, clients_connectes, Rooms):
     if (client_connected_existed == False and len(msg_recu.split(' ')) != 1):
         Send_Message("User not connected or not existing", key, client.socket)
 
+
 '''
-#* Fonction qui permet a un client qui était dans une room de revenir dans le chat public
+#* Fonction qui permet a un client qui était dans une room ou en chat privé de revenir dans le chat public
 
 #? msg_recu : input ecrit par un client
 #? client : client qui a ecrit le message
 #? clients_connectés : liste qui contient les clients connectés
 #? Rooms : liste de toutes les room
 '''
-
 def Client_Public(msg_recu,client, clients_connectes, Rooms):
     if(msg_recu==PUBLIC_CLIENT):
         # On vérifie qu'il n'est pas déjà en public
         if(client.room != "public"):
             for other_client in clients_connectes:
-                # Si dans la liste des clients conectés, le client à comme room le username du client qui veut quitter 
+                # Si dans la liste des clients connectés, le client à comme attribut room le username du client qui veut quitter 
                 # la conversatino privé, on le previent du départ de celui-ci
                 if(other_client.username==client.room):
                     msg="'{}' left the private chat.".format(client.username)
@@ -190,21 +188,14 @@ def Client_Public(msg_recu,client, clients_connectes, Rooms):
     else:
         raise Exception
 
+
 '''
 #* Fonction qui fait appel a la fonction List_Room_RF
-#* permet a un client de voir la liste des rooms dont il fait partis
+#* Permet a un client de voir la liste des rooms dont il fait parti
 
 #? msg_recu : input ecrit par un client
 #? client : client qui a ecrit le message
 #? clients_connectés : liste qui contient les clients connectés
-#? Rooms : liste de toutes les room
-'''
-
-'''
-#* Fonction permettant 
-
-#? msg_recu : input du client
-#? clients_connectes : liste des clients connectés
 #? Rooms : liste de toutes les room
 '''
 def List_Room(msg_recu, client, clients_connectes, Rooms):
@@ -213,95 +204,88 @@ def List_Room(msg_recu, client, clients_connectes, Rooms):
 
 '''
 #* Fonction qui fait appel a la fonction Create_Room_RF
-#* permet a un client de créer une room
+#* Permet a un client de créer une room
 
 #? msg_recu : input ecrit par un client
 #? client : client qui a ecrit le message
 #? clients_connectés : liste qui contient les clients connectés
 #? Rooms : liste de toutes les room
 '''
-
 def Create_Room(msg_recu, client, clients_connectes, Rooms):
     Create_Room_RF(msg_recu, client, clients_connectes, Rooms)
 
-'''
-#* Fonction qui fait appel a la fonction Create_Room_2RF
-#* permet a un client de créer une room
 
-#? msg_recu : input ecrit par un client
-#? client : client qui a ecrit le message
-#? clients_connectés : liste qui contient les clients connectés
-#? Rooms : liste de toutes les room
-'''
 
+''' fonction non utilisé à ce jour mais aurait pu l'être avec Create_Room2_RF dans romm_functions.py si le tout avait été plus fonctionnel
 def Create_Room2(msg_recu, client, clients_connectes, Rooms):
     Create_Room2_RF(msg_recu, client, clients_connectes, Rooms)                
+'''
+
 
 '''
 #* Fonction qui fait appel a la fonction Join_Room_RF
-#* permet a un client de rejoindre une room
+#* Permet a un client de rejoindre une room
 
 #? msg_recu : input ecrit par un client
 #? client : client qui a ecrit le message
 #? clients_connectés : liste qui contient les clients connectés
 #? Rooms : liste de toutes les room
 '''
-
 def Join_Room(msg_recu, client, clients_connectes, Rooms):
     Join_Room_RF(msg_recu, client, clients_connectes, Rooms)
 
+
 '''
 #* Fonction qui fait appel a la fonction Add_Room_RF
-#* permet a un client admin d'ajouter un autre client à sa room
+#* Permet a un client admin d'ajouter un autre client à sa room
 
 #? msg_recu : input ecrit par un client
 #? client : client qui a ecrit le message
 #? clients_connectés : liste qui contient les clients connectés
 #? Rooms : liste de toutes les room
 '''
-
 def Add_Room(msg_recu, client, clients_connectes, Rooms):
     Add_Room_RF(msg_recu, client, clients_connectes, Rooms)
 
 
 '''
 #* Fonction qui fait appel a la fonction Kick_Room_RF
-#* permet a un client admin de retirer un autre client de sa room
+#* Permet a un client admin de retirer un autre client de sa room
 
 #? msg_recu : input ecrit par un client
 #? client : client qui a ecrit le message
 #? clients_connectés : liste qui contient les clients connectés
 #? Rooms : liste de toutes les room
 '''
-
 def Kick_Room(msg_recu, client, clients_connectes, Rooms):
     Kick_Room_RF(msg_recu, client, clients_connectes, Rooms)
 
+
 '''
 #* Fonction qui fait appel a la fonction Leave_Room_RF
-#* permet a un client de se retirer de sa room
+#* Permet a un client de se retirer de sa room
 
 #? msg_recu : input ecrit par un client
 #? client : client qui a ecrit le message
 #? clients_connectés : liste qui contient les clients connectés
 #? Rooms : liste de toutes les room
 '''
-
 def Leave_Room(msg_recu, client, clients_connectes, Rooms):
     Leave_Room_RF(msg_recu, client, clients_connectes, Rooms)
 
+
 '''
 #* Fonction qui fait appel a la fonction List_Client_Room_RF
-#* permet a un client de voir la liste des clients present dans une room
+#* Permet a un client de voir la liste des clients present dans une room
 
 #? msg_recu : input ecrit par un client
 #? client : client qui a ecrit le message
 #? clients_connectés : liste qui contient les clients connectés
 #? Rooms : liste de toutes les room
 '''
-
 def List_Client_Room(msg_recu, client, clients_connectes, Rooms):
     List_Client_Room_RF(msg_recu, client, clients_connectes, Rooms)
+
 
 '''
 #* Fonction qui permet à un client d'upload un fichier
@@ -311,7 +295,6 @@ def List_Client_Room(msg_recu, client, clients_connectes, Rooms):
 #? clients_connectés : liste qui contient les clients connectés
 #? Rooms : liste de toutes les room
 '''
-
 def Client_Upload(msg_recu,client, clients_connectes, Rooms):
     filename, filesize = msg_recu.split("<>")
     filename = filename.split(" ",1)[1]
@@ -363,7 +346,6 @@ def Client_Upload(msg_recu,client, clients_connectes, Rooms):
 #? clients_connectés : liste qui contient les clients connectés
 #? Rooms : liste de toutes les room
 '''
-
 def Client_Ring(msg_recu,client, clients_connectes, Rooms):
     client_target_existed = False
     #on peut se permettre de verifier s'il n'y a que deux termes car le username ne peut pas contenir d'espace (regle qu'on a fixée)
@@ -392,7 +374,6 @@ def Client_Ring(msg_recu,client, clients_connectes, Rooms):
 #? clients_connectés : liste qui contient les clients connectés
 #? Rooms : liste de toutes les room
 '''
-
 def Client_ListF(msg_recu,client, clients_connectes, Rooms):
     list_files = os.listdir("Files")
     msg_a_envoyer = "Liste des fichier : \n"
@@ -410,7 +391,6 @@ def Client_ListF(msg_recu,client, clients_connectes, Rooms):
 #? clients_connectés : liste qui contient les clients connectés
 #? Rooms : liste de toutes les room
 '''
-
 def Client_Download(msg_recu,client, clients_connectes, Rooms):
     filename=""
     filesize = ""
@@ -474,7 +454,6 @@ def Thread_File_Sender (filename,filesize,client, client_connectes):
 #! Il est utilisé comme un switch case
 #! A gauche des ":" c'est la key (que l'on a défini tout en haut du fichier)
 #! A droite des ":" c'est la value qui est ici la fonction qui sera executé en fonction de la key que l'on saisi
-
 options = {
         EXIT_CLIENT : Client_Exit,
         HELP_CLIENT : Client_Help,

@@ -8,6 +8,7 @@ from datetime import datetime
 from cyphering import *
 from room_functions import *
 key = "salut"
+
 #Import files libraries
 import os
 import random
@@ -68,8 +69,8 @@ def Client_Help (msg_recu,client, clients_connectes, Rooms):
         #CreateRoom <room name> <user1> <user2> ... (create private chat room with multiple clients) \n \
         #JoinRoom <room name> (Join a room the client was added to)\n \
         #ListRoom (List all rooms the client was added to)\n \
-        #AddRoom <username> <room name> (Add a client to room)\n \
-        #KickRoom <username> <room name> (Kick a client from room)\n \
+        #AddRoom <room name> <username>  (Add a client to room)\n \
+        #KickRoom <room name> <username>  (Kick a client from room)\n \
         #LeaveRoom <room name> (Allow a client to leave a room)\n \
         #ListClientRoom <room name> (Allow a client to see the members of the room)\n"
 
@@ -112,7 +113,6 @@ def Client_Private(msg_recu,client, clients_connectes, Rooms):
     if (client_connected_existed == False and len(msg_recu.split(' ')) != 1):
         Send_Message("User not connected or not existing", key, client.socket)
 
-
 def Client_Public(msg_recu,client, clients_connectes, Rooms):
     if(msg_recu==PUBLIC_CLIENT):
         if(client.room != "public"):
@@ -124,29 +124,30 @@ def Client_Public(msg_recu,client, clients_connectes, Rooms):
     else:
         raise Exception
 
-def List_Room(msg_recu, client, clients_connectes, client_en_envoi_fichier, Rooms):
-    List_Room_RF(msg_recu, client, clients_connectes, client_en_envoi_fichier, Rooms)
 
-def Create_Room(msg_recu, client, clients_connectes, client_en_envoi_fichier, Rooms):
-    Create_Room_RF(msg_recu, client, clients_connectes, client_en_envoi_fichier, Rooms)
+def List_Room(msg_recu, client, clients_connectes, Rooms):
+    List_Room_RF(msg_recu, client, clients_connectes, Rooms)
 
-def Create_Room2(msg_recu, client, clients_connectes, client_en_envoi_fichier, Rooms):
-    Create_Room2_RF(msg_recu, client, clients_connectes, client_en_envoi_fichier, Rooms)                
+def Create_Room(msg_recu, client, clients_connectes, Rooms):
+    Create_Room_RF(msg_recu, client, clients_connectes, Rooms)
+
+def Create_Room2(msg_recu, client, clients_connectes, Rooms):
+    Create_Room2_RF(msg_recu, client, clients_connectes, Rooms)                
     
-def Join_Room(msg_recu, client, clients_connectes, client_en_envoi_fichier, Rooms):
-    Join_Room_RF(msg_recu, client, clients_connectes, client_en_envoi_fichier, Rooms)
+def Join_Room(msg_recu, client, clients_connectes, Rooms):
+    Join_Room_RF(msg_recu, client, clients_connectes, Rooms)
 
-def Add_Room(msg_recu, client, clients_connectes, client_en_envoi_fichier, Rooms):
-    Add_Room_RF(msg_recu, client, clients_connectes, client_en_envoi_fichier, Rooms)
+def Add_Room(msg_recu, client, clients_connectes, Rooms):
+    Add_Room_RF(msg_recu, client, clients_connectes, Rooms)
 
-def Kick_Room(msg_recu, client, clients_connectes, client_en_envoi_fichier, Rooms):
-    Kick_Room_RF(msg_recu, client, clients_connectes, client_en_envoi_fichier, Rooms)
+def Kick_Room(msg_recu, client, clients_connectes, Rooms):
+    Kick_Room_RF(msg_recu, client, clients_connectes, Rooms)
 
-def Leave_Room(msg_recu, client, clients_connectes, client_en_envoi_fichier, Rooms):
-    Leave_Room_RF(msg_recu, client, clients_connectes, client_en_envoi_fichier, Rooms)
+def Leave_Room(msg_recu, client, clients_connectes, Rooms):
+    Leave_Room_RF(msg_recu, client, clients_connectes, Rooms)
 
-def List_Client_Room(msg_recu, client, clients_connectes, client_en_envoi_fichier, Rooms):
-    List_Client_Room_RF(msg_recu, client, clients_connectes, client_en_envoi_fichier, Rooms)
+def List_Client_Room(msg_recu, client, clients_connectes, Rooms):
+    List_Client_Room_RF(msg_recu, client, clients_connectes, Rooms)
                             
 def Client_Upload(msg_recu,client, clients_connectes, Rooms):
     filename, filesize = msg_recu.split("<>")
@@ -198,7 +199,7 @@ def Client_Ring(msg_recu,client, clients_connectes, Rooms):
             if (other_client.username == msg_recu.split(' ')[1]):
                 client_target_existed = True
                 msg = "\nThe user : '{}' try to reach you.\n".format(client.username) 
-                Send_Message(msg.encode(), key, other_client.socket)
+                Send_Message(msg, key, other_client.socket)
     
     if (len(msg_recu.split(' ')) == 1):
         Send_Message("Please write a user's name after the command", key, client.socket)

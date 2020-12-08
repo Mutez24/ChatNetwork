@@ -7,7 +7,7 @@ from ClientClass import *
 key = "salut"
 
 
-def Create_Room_RF(msg_recu, client, clients_connectes, client_en_envoi_fichier, Rooms):
+def Create_Room_RF(msg_recu, client, clients_connectes, Rooms):
     if(len(msg_recu.split(' '))>3):
         success=False
         msg_recu = msg_recu.split(' ')
@@ -18,30 +18,30 @@ def Create_Room_RF(msg_recu, client, clients_connectes, client_en_envoi_fichier,
             if(not Room.Check_Name(room_name,Rooms)):
                 clients_typed=Client.List_Clients(name_clients_typed, clients_connectes)
                 if(len(clients_typed)!=len(name_clients_typed)):
-                    Send_Message(b"One or more client's name you typed don't match any connected client.\n", key, client.socket)
+                    Send_Message("One or more client's name you typed don't match any connected client.\n", key, client.socket)
                 if(len(clients_typed)>=2):
                     new_room=Room(room_name,client)
                     for member in clients_typed: 
                         new_room.clients.append(member)
                         msg_to_added_client="You were added to the room '{}' by '{}'.\n".format(new_room.name, client.username)
-                        Send_Message(msg_to_added_client.encode(), key, member.socket)
+                        Send_Message(msg_to_added_client, key, member.socket)
                     Rooms.append(new_room)
                     success=True
                     msg_to_admin= "The room '{}' was created successfully\n".format(new_room.name)
-                    Send_Message(msg_to_admin.encode(),key,client.socket)
+                    Send_Message(msg_to_admin,key,client.socket)
                     print("The room '{}' was created successfully at {} by '{}' from @{}:{}\n".format(new_room.name,datetime.now(),client.username,client.IP,client.port))                       
                 else:
-                    Send_Message(b"You don't have enough clients to add to your group.\n", key, client.socket)
+                    Send_Message("You don't have enough clients to add to your group.\n", key, client.socket)
             else:
-                Send_Message(b"The room name is already taken by another room, please try again and change the name.\n", key, client.socket)
+                Send_Message("The room name is already taken by another room, please try again and change the name.\n", key, client.socket)
         else:
-            Send_Message(b"The room name is invalid because a client has the same name.\n", key, client.socket)
+            Send_Message("The room name is invalid because a client has the same name.\n", key, client.socket)
         if(not success):
-            Send_Message(b"Your room wasn't created, you are now back in the chat.\n", key, client.socket)    
+            Send_Message("Your room wasn't created, you are now back in the chat.\n", key, client.socket)    
     else:
-        Send_Message(b"Please write the correct attributes after the command. \nPlease note that to create a room, you need at least 3 users including you.\n", key, client.socket)
+        Send_Message("Please write the correct attributes after the command. \nPlease note that to create a room, you need at least 3 users including you.\n", key, client.socket)
 
-def Create_Room2_RF(msg_recu, client, clients_connectes, client_en_envoi_fichier, Rooms):
+def Create_Room2_RF(msg_recu, client, clients_connectes, Rooms):
     name_clients=[]
     error_msg=""
     for cli in clients_connectes:
@@ -66,7 +66,7 @@ def Create_Room2_RF(msg_recu, client, clients_connectes, client_en_envoi_fichier
     elif(len(msg_recu.split(' '))==1):
         Send_Message(b"Please precise a room name after the #CreateRoom command.",key,client.socket)                   
     
-def Join_Room_RF(msg_recu, client, clients_connectes, client_en_envoi_fichier, Rooms):
+def Join_Room_RF(msg_recu, client, clients_connectes, Rooms):
     if(len(msg_recu.split(' ')) > 1):
         msg_recu = msg_recu.split(' ')
         room_name = msg_recu[1]
@@ -77,18 +77,18 @@ def Join_Room_RF(msg_recu, client, clients_connectes, client_en_envoi_fichier, R
                 client.room=room.name    
                 msg="You are now in the room {}.\n".format(room_name)
                 msg+="Every message you send can only be seen by members of this room.\n"
-                Send_Message(msg.encode(),key,client.socket, force=True)
+                Send_Message(msg, key, client.socket, force=True)
             else:
-                Send_Message(b"You don't belong to this room.\n", key, client.socket)
+                Send_Message("You don't belong to this room.\n", key, client.socket)
         else:
-            Send_Message(b"You typed a wrong room name. \n", key, client.socket)
+            Send_Message("You typed a wrong room name. \n", key, client.socket)
 
     elif (len(msg_recu.split(' ')) == 1):
-        Send_Message(b"Please write a room name after the command.\n", key, client.socket)
+        Send_Message("Please write a room name after the command.\n", key, client.socket)
     else:
         raise Exception
 
-def Add_Room_RF(msg_recu, client, clients_connectes, client_en_envoi_fichier, Rooms):
+def Add_Room_RF(msg_recu, client, clients_connectes, Rooms):
     if(len(msg_recu.split(' ')) > 2):
         msg_recu = msg_recu.split(' ')
         room_name = msg_recu[1]
@@ -102,24 +102,24 @@ def Add_Room_RF(msg_recu, client, clients_connectes, client_en_envoi_fichier, Ro
                         client_to_add=Client.Get_Client(name_client_to_add, clients_connectes)
                         room.clients.append(client_to_add)
                         msg_to_added_client="You were added to the room '{}' by '{}'.\n".format(room_name, client.username)
-                        Send_Message(msg_to_added_client.encode(), key, client_to_add.socket)
+                        Send_Message(msg_to_added_client, key, client_to_add.socket)
 
                         msg_to_other="'{}' was added to the room '{}' by '{}'.\n".format(name_client_to_add, room_name, client.username)
                         for other_client in room.clients:
                             if other_client!=client_to_add:
-                                Send_Message(msg_to_other.encode(), key, other_client.socket)
+                                Send_Message(msg_to_other, key, other_client.socket)
                     else:
-                        Send_Message(b"The client you want to add doesn't exist or isn't connected.\n", key, client.socket)
+                        Send_Message("The client you want to add doesn't exist or isn't connected.\n", key, client.socket)
                 else: 
-                    Send_Message(b"You aren't the admin of this room.\n", key, client.socket)        
+                    Send_Message("You aren't the admin of this room.\n", key, client.socket)        
             else:
-                Send_Message(b"You don't belong to this room.\n", key, client.socket)
+                Send_Message("You don't belong to this room.\n", key, client.socket)
         else:
-            Send_Message(b"You typed a wrong room name. \n", key, client.socket)
+            Send_Message("You typed a wrong room name. \n", key, client.socket)
     else:
-        Send_Message(b"Please write the correct attributes after the command.\n", key, client.socket)
+        Send_Message("Please write the correct attributes after the command.\n", key, client.socket)
 
-def Kick_Room_RF(msg_recu, client, clients_connectes, client_en_envoi_fichier, Rooms):
+def Kick_Room_RF(msg_recu, client, clients_connectes, Rooms):
     if(len(msg_recu.split(' ')) > 2):
         msg_recu = msg_recu.split(' ')
         room_name = msg_recu[1]
@@ -135,30 +135,30 @@ def Kick_Room_RF(msg_recu, client, clients_connectes, client_en_envoi_fichier, R
                         client_to_kick.room = "public"
                         msg_to_kicked_client="You were kicked from the room '{}' by '{}'.\n".format(room_name, client.username)
                         msg_to_kicked_client+="You are now back at the public chat.\n"
-                        Send_Message(msg_to_kicked_client.encode(), key, client_to_kick.socket)
+                        Send_Message(msg_to_kicked_client, key, client_to_kick.socket)
 
                         msg_to_other="'{}' was kicked from the room '{}' by '{}'.\n".format(name_client_to_kick,room_name, client.username)
                         for other_client in room.clients:
                             if other_client!=client_to_kick:
-                                Send_Message(msg_to_other.encode(), key, other_client.socket)
+                                Send_Message(msg_to_other, key, other_client.socket)
 
                         if(len(room.clients)<2):
                             msg="Chat room was dissolved because too few people were remaining (< 2).\n"
                             for member in room.clients:
-                                Send_Message(msg.encode(),key, member.socket)
+                                Send_Message(msg,key, member.socket)
                             Rooms.remove(room)
                     else:
-                        Send_Message(b"The client you want to kick doesn't belong to this room.\n", key, client.socket)
+                        Send_Message("The client you want to kick doesn't belong to this room.\n", key, client.socket)
                 else: 
-                    Send_Message(b"You aren't the admin of this room.\n", key, client.socket)        
+                    Send_Message("You aren't the admin of this room.\n", key, client.socket)        
             else:
-                Send_Message(b"You don't belong to this room.\n", key, client.socket)
+                Send_Message("You don't belong to this room.\n", key, client.socket)
         else:
-            Send_Message(b"You typed a wrong room name. \n", key, client.socket)
+            Send_Message("You typed a wrong room name. \n", key, client.socket)
     else:
-        Send_Message(b"Please write the correct attributes after the command.\n", key, client.socket)
+        Send_Message("Please write the correct attributes after the command.\n", key, client.socket)
 
-def Leave_Room_RF(msg_recu, client, clients_connectes, client_en_envoi_fichier, Rooms):
+def Leave_Room_RF(msg_recu, client, clients_connectes, Rooms):
     if(len(msg_recu.split(' ')) > 1):
         msg_recu = msg_recu.split(' ')
         room_name = msg_recu[1]
@@ -168,29 +168,29 @@ def Leave_Room_RF(msg_recu, client, clients_connectes, client_en_envoi_fichier, 
             if room.Check_Client(client.username):
                 room.clients.remove(client)
                 msg_leaver="You left the chat room '{}'.\n".format(room.name)
-                Send_Message(msg_leaver.encode(), key, client.socket)
+                Send_Message(msg_leaver, key, client.socket)
 
                 msg="'{}' Left the Chat Room '{}'.\n".format(client.username, room.name)
                 if(len(room.clients)<2):
                     msg+="Chat room was dissolved because too few people were remaining.\n"
                     for member in room.clients:
-                        Send_Message(msg.encode(),key, member.socket)
+                        Send_Message(msg,key, member.socket)
                     Rooms.remove(room)
                 elif(client==room.admin):
                     room.admin=room.clients[0]
                     msg="You are now the admin of the chat room '{}'.\n".format(room.name)
-                    Send_Message(msg.encode(),key, room.admin.socket)
+                    Send_Message(msg,key, room.admin.socket)
                 else:
                     for member in room.clients:
-                        Send_Message(msg.encode(),key, member.socket)
+                        Send_Message(msg,key, member.socket)
             else:
-                Send_Message(b"You don't belong to this room.\n", key, client.socket)
+                Send_Message("You don't belong to this room.\n", key, client.socket)
         else:
-            Send_Message(b"You typed a wrong room name. \n", key, client.socket)
+            Send_Message("You typed a wrong room name. \n", key, client.socket)
     else:
         raise Exception 
 
-def List_Client_Room_RF(msg_recu, client, clients_connectes, client_en_envoi_fichier, Rooms):
+def List_Client_Room_RF(msg_recu, client, clients_connectes, Rooms):
     exist=False
     if(len(msg_recu.split(' ')) > 1):
         msg_recu = msg_recu.split(' ')
@@ -208,15 +208,15 @@ def List_Client_Room_RF(msg_recu, client, clients_connectes, client_en_envoi_fic
                     if cli==client:
                         list_clients+=" (you)"
 
-                Send_Message(list_clients.encode(),key,client.socket, force=True)
+                Send_Message(list_clients,key,client.socket, force=True)
             else:
-                Send_Message(b"You don't belong to this room.\n",key,client.socket, force=True)
+                Send_Message("You don't belong to this room.\n",key,client.socket, force=True)
         else:
-            Send_Message(b"The room name you provided is wrong or the room doesn't exist.\n",key,client.socket, force=True)
+            Send_Message("The room name you provided is wrong or the room doesn't exist.\n",key,client.socket, force=True)
     else:
         raise Exception
 
-def List_Room_RF(msg_recu, client, clients_connectes, client_en_envoi_fichier, Rooms):
+def List_Room_RF(msg_recu, client, clients_connectes, Rooms):
     msg=""
     list_rooms=client.List_Rooms(Rooms)
     if(len(list_rooms)!=0):
@@ -225,4 +225,4 @@ def List_Room_RF(msg_recu, client, clients_connectes, client_en_envoi_fichier, R
             msg+=room.name+"\n   "
     else:
         msg="You don't belong to any private Chat room.\n"
-    Send_Message(msg.encode(),key,client.socket, force=True)
+    Send_Message(msg,key,client.socket, force=True)

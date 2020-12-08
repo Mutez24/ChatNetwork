@@ -28,7 +28,6 @@ end_private_message = "end"
 Rooms=[]
 key = "salut"
 
-client_en_envoi_fichier = []
 
 
 def read_kbd_input(inputQueue):
@@ -156,8 +155,9 @@ def Create_Room_Server(client, room_name):
             choice= Receive_Message(key, client.socket).decode()
         if(choice=="1"):
             client_connected_existed=False
-            client_functions.Check_client_functions("#ListU", client, clients_connectes, client_en_envoi_fichier, Rooms)
+            client_functions.Check_client_functions("#ListU", client, clients_connectes,  Rooms)
             Send_Message("Please, write one of the name mentionned above: ", key, client.socket)
+            #client.socket.send(b"Please, write one of the name mentionned above: ")
             client_typed= Receive_Message(key, client.socket).decode()
             for other_client in clients_connectes:
                 if (other_client.username == client_typed and (other_client not in new_room.clients)):
@@ -192,7 +192,7 @@ def Create_Room_Server(client, room_name):
 
 def main():
     #Define global variables
-    global clients_connectes, returned_string, private_bool, client_name_private, client_en_envoi_fichier
+    global clients_connectes, returned_string, private_bool, client_name_private
 
 
     #! Set up socket variables
@@ -267,7 +267,7 @@ def main():
             pass
         else:
             # On parcourt la liste des clients à lire
-            for client in list(set(clients_a_lire) - set(client_en_envoi_fichier)):
+            for client in clients_a_lire:
                 # Client est de type Client
                 # Empecher un crash si un client ferme sa fenetre avec la croix
                 msg_recu="" #Définition de la variable
@@ -287,14 +287,14 @@ def main():
                     '''
                     if(msg_recu[1:11]=="CreateRoom"):
                         try:
-                            room_creator, room_name=client_functions.Check_client_functions(msg_recu, client, clients_connectes, client_en_envoi_fichier, Rooms)
+                            room_creator, room_name=client_functions.Check_client_functions(msg_recu, client, clients_connectes,  Rooms)
                             (threading.Thread(target=Create_Room_Server, args=(room_creator, room_name,), daemon=True)).start()
                             #Create_Room_Server(room_creator, room_name)
                         except:
                             pass
                     else:
                     '''
-                    client_functions.Check_client_functions(msg_recu, client, clients_connectes, client_en_envoi_fichier, Rooms)
+                    client_functions.Check_client_functions(msg_recu, client, clients_connectes,  Rooms)
                 #Si l'attribut room du client n'est pas sur public, alors on doit envoyer son message à un client en particulier
                 elif(client.room!="public"):
                     for other_client in clients_connectes:

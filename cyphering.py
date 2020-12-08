@@ -58,9 +58,3 @@ def Receive_Message(key, socket):
     #msg_decrypted = PolyDecryption(msg, key)
     final_msg = msg_decrypter_join.encode()
     return final_msg
-
-if __name__ == '__main__':
-    encrypt=PolyEncryption("Clement","cle")
-    print(encrypt)
-    decrypt=PolyDecryption(encrypt,"cle")
-    print(decrypt)

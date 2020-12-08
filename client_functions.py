@@ -1,19 +1,3 @@
-'''
-• Client function (command line):
-#! 1) #Help (list command)
-#! 2) #Exit (client exit)
-#! 3) #ListU (list of users in a server)
-#! Rémi 4) #ListF (list of files in a server)
-#! Rémi 5) #TrfU (Upload file transfer to a server)
-#! Rémi 6) #TrfD (transfer Download file to a server)
-#TODO VALOT • # Private <user> (private chat with another user)
-#TODO VALOT • #Public (back to the public)
-#TODO MUTEZ 1) #Ring <user> (notification if the user is logged in)
-#TODO MUTEZ Limit size of messages (280 characters)
-2) Your original orders
-
-'''
-
 # Import sockets libraries
 import socket
 import select
@@ -22,6 +6,7 @@ import select
 from datetime import datetime
 
 from cyphering import *
+from room_functions import *
 key = "salut"
 #Import files libraries
 import os
@@ -132,7 +117,6 @@ def Client_Private(msg_recu,client, clients_connectes,client_en_envoi_fichier, R
         Send_Message(b"User not connected or not existing", key, client.socket)
         #client.socket.send(b"User not connected or not existing")
 
-
 def Client_Public(msg_recu,client, clients_connectes,client_en_envoi_fichier, Rooms):
     if(msg_recu==PUBLIC_CLIENT):
         if(client.room != "public"):
@@ -146,274 +130,28 @@ def Client_Public(msg_recu,client, clients_connectes,client_en_envoi_fichier, Ro
         raise Exception
 
 def List_Room(msg_recu, client, clients_connectes, client_en_envoi_fichier, Rooms):
-    list_rooms="Here is the list of private Chat room you belong to:\n   "
-    for room in Rooms:
-        for room_client in room.clients:
-            if client.username==room_client.username:
-                list_rooms+=room.name+"\n   "
-                break
-    Send_Message(list_rooms.encode(),key,client.socket, force=True)
+    List_Room_RF(msg_recu, client, clients_connectes, client_en_envoi_fichier, Rooms)
 
 def Create_Room(msg_recu, client, clients_connectes, client_en_envoi_fichier, Rooms):
-    if(len(msg_recu.split(' '))>3):
-        exist=False
-        creation_success = False
-        clients_to_add_to_room = []
-        error_msg=""
-
-        msg_recu = msg_recu.split(' ')
-        room_name = msg_recu[1]
-        name_clients_typed = msg_recu[2:len(msg_recu)]
-
-        name_clients_connected=[]
-        for cli in clients_connectes:
-            name_clients_connected.append(cli.username)
-
-        if(room_name in name_clients_connected):
-            error_msg=b"The name of the room is already taken by a user, please try again and change the name.\n"
-            exist=True
-        for room in Rooms:
-            if(room_name==room.name):
-                error_msg=b"The name of the room is already taken by another room, please try again and change the name.\n"
-                exist=True
-                break
-        
-        if (not exist):
-            for name_cli_typed in name_clients_typed:
-                if (name_cli_typed in name_clients_connected and (name_cli_typed not in clients_to_add_to_room)):
-                    clients_to_add_to_room.append(name_cli_typed)
-                else:
-                    msg = "User '{}' is not connected or does not exist. In both case, he can't be added to the room. It's also possible that you already added him to the room (you might have written his name twice or more).".format(name_cli_typed)
-                    Send_Message(msg.encode(), key, client.socket)
-            
-            if (len(clients_to_add_to_room) > 1):
-                new_room=Room(room_name,client)
-                for cli in clients_connectes: #on refait cette boucle pour prendre toutes les infos concernant le client et pas que son nom
-                    if (cli.username in clients_to_add_to_room and cli.username != client.username):
-                        new_room.clients.append(cli)
-                Rooms.append(new_room)
-                print("The room '{}' was created successfully at {} by '{}' from @{}:{}\n".format(new_room.name,datetime.now(),client.username,client.IP,client.port))
-                msg_success="Room '{}' created successfully!".format(room_name) 
-                Send_Message(msg_success.encode(), key, client.socket)  
-                for added_client in new_room.clients:
-                    if(added_client.username!=client.username):
-                        msg_to_added_client="You were added to the room '{}' by '{}'".format(new_room.name, client.username)
-                        Send_Message(msg_to_added_client.encode(), key, added_client.socket)
-            else:
-                msg_exit="You don't have enough clients in your room (3).\n"
-                msg_exit+="Your room wasn't created, you are now back in the chat.\n"
-                Send_Message(msg_exit.encode(), key, client.socket) 
-        else:
-            Send_Message(error_msg, key, client.socket)
-    else:
-        Send_Message(b"Please write the correct attributes after the command. Please not that to create a room, you need at least 3 users including you", key, client.socket)
-
-
-
+    Create_Room_RF(msg_recu, client, clients_connectes, client_en_envoi_fichier, Rooms)
 
 def Create_Room2(msg_recu, client, clients_connectes, client_en_envoi_fichier, Rooms):
-    name_clients=[]
-    error_msg=""
-    for cli in clients_connectes:
-        name_clients.append(cli.username)
-    exist=False
-    if(len(msg_recu.split(' '))>1):
-        room_name = msg_recu.lstrip(msg_recu.split(' ')[0])
-        room_name = room_name[1:len(room_name)]
-        
-        if(room_name in name_clients):
-            error_msg=b"The name of the room is already taken by a user, please try again and change the name.\n"
-            exist=True
-        for room in Rooms:
-            if(room_name==room.name):
-                error_msg=b"The name of the room is already taken by another room, please try again and change the name.\n"
-                exist=True
-                break
-        if(not exist):
-            return client, room_name
-        else:
-            Send_Message(error_msg,key,client.socket) 
-    elif(len(msg_recu.split(' '))==1):
-        Send_Message(b"Please precise a room name after the #CreateRoom command.",key,client.socket)                   
+    Create_Room2_RF(msg_recu, client, clients_connectes, client_en_envoi_fichier, Rooms)                
     
 def Join_Room(msg_recu, client, clients_connectes, client_en_envoi_fichier, Rooms):
-    found=False
-    if(len(msg_recu.split(' ')) > 1):
-        room_name = msg_recu.lstrip(msg_recu.split(' ')[0])
-        room_name = room_name[1:len(room_name)]
-        for room in Rooms:
-            if room.name==room_name:
-                for client_in_room in room.clients:
-                    if client.username==client_in_room.username:
-                        client.room=room.name
-                        found=True
-                        break
-                if(found): 
-                    break
-        if(found):
-            msg="You are now in the room {}. \n".format(room_name)
-            msg+="Every message you send can only be seen by members of this room.\n"
-            Send_Message(msg.encode(),key,client.socket, force=True)
-        else:
-            msg="The room name you provided is either wrong or you don't belong to this room.\n"
-            Send_Message(msg.encode(),key,client.socket, force=True)
-    elif (len(msg_recu.split(' ')) == 1):
-        Send_Message(b"Please write a user's name after the command", key, client.socket)
-    else:
-        raise Exception
+    Join_Room_RF(msg_recu, client, clients_connectes, client_en_envoi_fichier, Rooms)
 
 def Add_Room(msg_recu, client, clients_connectes, client_en_envoi_fichier, Rooms):
-    check_room = False
-    check_added_client = False
-
-    if(len(msg_recu.split(' ')) > 2):
-        msg_recu = msg_recu.split(' ')
-        client_to_add = msg_recu[1]
-        room_name = msg_recu[2:len(msg_recu)]
-        room_name = " ".join(room_name)
-
-        name_clients_connected=[]
-        for cli in clients_connectes:
-            name_clients_connected.append(cli.username)
-
-        name_clients_room=[]
-        for room in Rooms:
-            if (room.name == room_name):
-                for cli in room.clients:
-                    name_clients_room.append(cli.username)
-
-        for room in Rooms:
-            if (room_name == room.name):
-                check_room = True
-                if (client.username == room.admin.username):
-                    for cli in clients_connectes:
-                        if (cli.username == client_to_add and (client_to_add in name_clients_connected) and (client_to_add not in name_clients_room)):
-                            check_added_client = True
-                            room.clients.append(cli)
-                            msg_to_added_client="You were added to the room '{}' by '{}'".format(room_name, client.username)
-                            Send_Message(msg_to_added_client.encode(), key, cli.socket)
-                            break
-                else:
-                    Send_Message(b"You can't do this action because you are not the admin of the room", key, client.socket)
-                break
-
-        if (not check_room):
-            Send_Message(b"The room name you wrote doesn't exist", key, client.socket)
-
-        if (not check_added_client and check_room):
-            Send_Message(b"The user is either not connected or already in the room", key, client.socket)
-    else:
-        Send_Message(b"Please write the correct attributes after the command", key, client.socket)
+    Add_Room_RF(msg_recu, client, clients_connectes, client_en_envoi_fichier, Rooms)
 
 def Kick_Room(msg_recu, client, clients_connectes, client_en_envoi_fichier, Rooms):
-    check_room = False
-    check_kicked_client = False
-
-    if(len(msg_recu.split(' ')) > 2):
-        msg_recu = msg_recu.split(' ')
-        client_to_kick = msg_recu[1]
-        room_name = msg_recu[2:len(msg_recu)]
-        room_name = " ".join(room_name)
-
-        name_clients_connected=[]
-        for cli in clients_connectes:
-            name_clients_connected.append(cli.username)
-
-        name_clients_room=[]
-        for room in Rooms:
-            if (room.name == room_name):
-                for cli in room.clients:
-                    name_clients_room.append(cli.username)
-
-        for room in Rooms:
-            if (room_name == room.name):
-                check_room = True
-                if (client.username == room.admin.username):
-                    for cli in clients_connectes:
-                        if (cli.username == client_to_kick and (client_to_kick in name_clients_connected) and (client_to_kick in name_clients_room)):
-                            check_kicked_client = True
-                            room.clients.remove(cli)
-                            cli.room = "public"
-                            msg_to_kicked_client="You were kicked from the room '{}' by '{}'.\n".format(room_name, client.username)
-                            msg_to_kicked_client+="You are now back at the public chat."
-                            Send_Message(msg_to_kicked_client.encode(), key, cli.socket)
-                            break
-                else:
-                    Send_Message(b"You can't do this action because you are not the admin of the room", key, client.socket)
-                break
-
-        if (not check_room):
-            Send_Message(b"The room name you wrote doesn't exist", key, client.socket)
-
-        if (not check_kicked_client and check_room):
-            Send_Message(b"The user is either not connected or not in the room", key, client.socket)
-    else:
-        Send_Message(b"Please write the correct attributes after the command", key, client.socket)
+    Kick_Room_RF(msg_recu, client, clients_connectes, client_en_envoi_fichier, Rooms)
 
 def Leave_Room(msg_recu, client, clients_connectes, client_en_envoi_fichier, Rooms):
-    found=False
-    if(len(msg_recu.split(' ')) > 1):
-        room_name = msg_recu.lstrip(msg_recu.split(' ')[0])
-        room_name = room_name[1:len(room_name)]
-        index_removing_room=-1
-        for room in Rooms:
-            index_removing_room+=1
-            if room.name==room_name:
-                index_removing_client=-1
-                for client_in_room in room.clients:
-                    index_removing_client+=1
-                    if client.username==client_in_room.username:
-                        room.clients.pop(index_removing_client)
-                        msg="'{}' Left the Chat Room '{}'.\n".format(client.username, room.name)
-                        if(len(room.clients)<2):
-                            msg+="Chat room was dissolved because too few people were remaining.\n"
-                            for member in room.clients:
-                                Send_Message(msg.encode(),key, member.socket)
-                            Rooms.pop(index_removing_room)
-                        elif(client.username==room.admin.username):
-                            room.admin=room.clients[0]
-                            msg="You are now the admin of the chat room '{}'.\n".format(room.name)
-                            Send_Message(msg.encode(),key, room.admin.socket)
-                        else:
-                            for member in room.clients:
-                                Send_Message(msg.encode(),key, member.socket)
-                        found=True
-                        break
-                if(found): 
-                    break
-        if(found): 
-            Send_Message(b"You left the chat room.\n", key, client.socket)
-        else:
-            Send_Message(b"You either typed a wrong room name or don't belong to this room.\n", key, client.socket)
-    else:
-        raise Exception 
-
+    Leave_Room_RF(msg_recu, client, clients_connectes, client_en_envoi_fichier, Rooms)
 
 def List_Client_Room(msg_recu, client, clients_connectes, client_en_envoi_fichier, Rooms):
-    exist=False
-    if(len(msg_recu.split(' ')) > 1):
-        room_name = msg_recu.lstrip(msg_recu.split(' ')[0])
-        room_name = room_name[1:len(room_name)]
-        list_clients="Here is the list of clients belonging to Chat room '{}':".format(room_name)
-        for room in Rooms:
-            if room_name==room.name:
-                for cli in room.clients:
-                    if cli.username==client.username: #If client doesn't belong to the room, he can't see its members
-                        exist=True
-                    if cli.username==room.admin.username:
-                        list_clients+="\n   "+cli.username+" (admin)"
-                    else:
-                        list_clients+="\n   "+cli.username
-                break
-        if(exist):
-            Send_Message(list_clients.encode(),key,client.socket, force=True)
-        else:
-            Send_Message(b"The room name you provided is either wrong or you don't belong to this room.\n",key,client.socket, force=True)
-    else:
-        raise Exception
-            
-
-    
+    List_Client_Room_RF(msg_recu, client, clients_connectes, client_en_envoi_fichier, Rooms)
                             
 def Client_Upload(msg_recu,client, clients_connectes,client_en_envoi_fichier, Rooms):
     filename, filesize = msg_recu.split("<>")
@@ -450,7 +188,6 @@ def Client_Upload(msg_recu,client, clients_connectes,client_en_envoi_fichier, Ro
             f.write(bytes_read)
         print()
     client_en_envoi_fichier.remove(client)
-
 
 def Client_Ring(msg_recu,client, clients_connectes,client_en_envoi_fichier, Rooms):
     client_target_existed = False

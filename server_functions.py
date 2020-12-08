@@ -1,13 +1,3 @@
-'''
-• Server function (command line):
-#! 1) #Help (list command)
-#! 2) #Exit (server shutdown)
-#! 3) #Kill <user>
-#! 4) #ListU (list of users in a server)
-#! 5) #ListF (list of files in a server)
-#! 6) #Private <user> (private chat with another user)
-#! 7) #Alert <all users>
-'''
 # Import sockets libraries
 import socket
 
@@ -22,43 +12,52 @@ key = "salut"
 import os
 
 #! Commandes serveur
-EXIT_SERVER = "#Exit" #Command used by server to shutdown
-HELP_SERVER = "#Help" #Command used by server to get help
-KILL_SERVER = "#Kill" #Command used by server to kill user terminal
-LISTU_SERVER = "#ListU" #Command used by the server to display all the connected users
-ALERT_SERVER = "#Alert" #Command used by the server to send a message to all users
-PRIVATE_SERVER = "#Private" ##Command used by the server to send a message to a particular user
-LISTF_SERVER = "#ListF" ##Command used by the server to check all existing files in Files dir
+EXIT_SERVER = "#Exit" #Commande utilisée par le serveur pour shutdown
+HELP_SERVER = "#Help" #Commande utilisée par le serveur pour obtenir de l'aide
+KILL_SERVER = "#Kill" #Commande utilisée par le serveur pour kill le terminal d'un user
+LISTU_SERVER = "#ListU" #Commande utilisée par le serveur pour afficher tous les utilisateurs connectés
+ALERT_SERVER = "#Alert" #Commande utilisée par le serveur pour envoyer un message à tous les utilisateurs
+PRIVATE_SERVER = "#Private" #Commande utilisée par le serveur pour envoyer un message à un utilisateur en particulier
+LISTF_SERVER = "#ListF" #Commande utilisée par le serveur pour vérifier tous les fichiers existants dans le répertoire Files
 
-def Server_Exit(input_server, clients_connectes,connexion_principale,connexions_demandees):
-    if(input_server == EXIT_SERVER):
+'''
+#* Fonction qui permet de shutdown le server ce qui aura pour impact de shutdown tous les users connectés également
+
+#? param input du server
+#? la liste de tous les clients connectés
+#? la connexion principale (la socket du server)
+'''
+def Server_Exit(input_server, clients_connectes,connexion_principale):
         print("Server closing...")
+        #On va fermer toutes les sockets des clients connectés et leur envoyer un message pour pouvoir sortir de la boucle while(true) dans client.py
         for client in clients_connectes:
             Send_Message("Server shutdown", key, client.socket)
             client.socket.close()
-        
-        ''' test pour close les users qui sont en train de se connecter ou creer un compte quand le serveur shutdown. Si fonctionne pas retirer connexion_demandees 
-        for client in connexions_demandees:
-            client.socket.send(b"Server shutdown")
-            client.socket.close()
-        '''
+
+        #On ferme aussi la socket du server
         connexion_principale.close()
-        return ("exit", "")
+        return "exit"
 
-    else :
-        raise Exception
 
-def Server_Kill(input_server, clients_connectes,connexion_principale,connexions_demandees):
+'''
+#* Fonction qui permet de shutdown un terminal d'un user connecté 
+
+#? param input du server
+#? la liste de tous les clients connectés
+#? la connexion principale (la socket du server)
+'''
+def Server_Kill(input_server, clients_connectes,connexion_principale):
     client_connected_existed = False
     if(len(input_server.split(' ')) == 2): #on peut se permettre de verifier s'il n'y a que deux termes car le username ne peut pas contenir d'espace (regle qu'on a fixée)
-        for client in clients_connectes:
+        for client in clients_connectes: #on parcourt les clients connecté jusqu'à trouvé le client à kick
             if (client.username == input_server.split(' ')[1]):
                 client_connected_existed = True
-                Send_Message("You were kicked by server", key, client.socket)
-                client.socket.close()
-                clients_connectes.remove(client)
+                Send_Message("You were kicked by server", key, client.socket) #Message pour pouvoir sortir de la boucle while(true) dans client.py
+                client.socket.close() #on ferme la socket du client à kick
+                clients_connectes.remove(client) #on le retir des clients connectés
                 print("User '{}' was kicked by server at {} from @{}:{}".format(client.username, datetime.now(), client.IP, client.port))
 
+                #on prévient tous les autres users connectés qu'un user a été kick
                 for client_not_kicked in clients_connectes:
                     if (client_not_kicked != client):
                         msg = "User '{}' was kicked by server".format(input_server.split(' ')[1])
@@ -70,25 +69,50 @@ def Server_Kill(input_server, clients_connectes,connexion_principale,connexions_
     if (not client_connected_existed and len(input_server.split(' ')) != 1):
         print("Client not connected or not existing")
 
-def Server_Help(input_server, clients_connectes,connexion_principale,connexions_demandees):
+
+'''
+#* Fonction affichant toutes les commandes possibles pour le server
+
+#? param input du server
+#? la liste de tous les clients connectés
+#? la connexion principale (la socket du server)
+'''
+def Server_Help(input_server, clients_connectes,connexion_principale):
     msg = "You can find a list of available commands below : \n \n \
     #Help (list command) \n \
     #Exit (server shutdown) \n \
     #Kill <user> (kick <user> from server) \n \
     #ListU (list of users in a server) \n \
     #ListF (list of files in a server) \n \
-    #Private <user> (private chat with another user) \n \
+    #Private <user> <message> (private chat with another user) \n \
     #Alert <msg> (send msg to all users)"
 
     print(msg)
 
-def Server_ListU(input_server, clients_connectes,connexion_principale,connexions_demandees):
+
+'''
+#* Fonction affichant tous les users connectés
+
+#? input du server
+#? la liste de tous les clients connectés
+#? la connexion principale (la socket du server)
+'''
+def Server_ListU(input_server, clients_connectes,connexion_principale):
     print("The following users are connected to the server :")
     for client in clients_connectes:
         print("   - User '{}' from @{}:{}".format(client.username, client.IP, client.port))
 
-def Server_Alert(input_server, clients_connectes,connexion_principale,connexions_demandees):
+
+'''
+#* Fonction permettant d'envoyer un message à tous les users
+
+#? input du server
+#? la liste de tous les clients connectés
+#? la connexion principale (la socket du server)
+'''
+def Server_Alert(input_server, clients_connectes,connexion_principale):
     if(len(input_server.split(' ')) != 1): #si l'input c'est pas seulement #Alert car dans ce cas il n'y a pas de message
+        #On récupère l'input sous la forme d'un long string
         msg =""
         for word in input_server.split(' '):
             msg+= word + " "
@@ -101,15 +125,24 @@ def Server_Alert(input_server, clients_connectes,connexion_principale,connexions
     else:
         print("There is nothing to send. If you want to send something, write a message after the command")
 
+'''
+#* Fonction permettant d'envoyer un message privé à un user 
 
-def Server_Private(input_server, clients_connectes,connexion_principale,connexions_demandees):
+#? input du server
+#? la liste de tous les clients connectés
+#? la connexion principale (la socket du server)
+'''
+def Server_Private(input_server, clients_connectes,connexion_principale):
     client_connected_existed = False
-    if(len(input_server.split(' ')) == 2): #on peut se permettre de verifier s'il n'y a que deux termes car le username ne peut pas contenir d'espace (regle qu'on a fixée)
-        for client in clients_connectes:
+    if(len(input_server.split(' ')) > 2): #on peut se permettre de verifier s'il n'y a que trois termes car le username ne peut pas contenir d'espace (regle qu'on a fixée)
+        for client in clients_connectes: #On check si le client à qui veut s'adresser le serveur est bien connecté
             if (client.username == input_server.split(' ')[1]):
                 client_connected_existed = True
-                client_name = input_server.split(' ')[1]
-                return ("private_conv", client_name)
+                #On récupère le message que le server veut envoyer au client
+                msg = input_server.split(' ')[2:len(input_server.split(' '))]
+                msg = " ".join(msg)
+                msg_a_envoyer = "PRIVATE MESSAGE FROM SERVER : " + msg
+                Send_Message(msg_a_envoyer, key, client.socket)
     
     if (len(input_server.split(' ')) == 1):
         print("Please write a client name after the command")
@@ -117,14 +150,25 @@ def Server_Private(input_server, clients_connectes,connexion_principale,connexio
     if (client_connected_existed == False and len(input_server.split(' ')) != 1):
         print("Client not connected or not existing")
 
-def Server_ListF(input_server, clients_connectes,connexion_principale,connexions_demandees):
-    list_files = os.listdir("Files")
+
+'''
+#* Fonction qui permet de lister tous les files présents sur le server
+
+#? param input du server
+#? la liste de tous les clients connectés
+#? la connexion principale (la socket du server)
+'''
+def Server_ListF(input_server, clients_connectes,connexion_principale):
+    list_files = os.listdir("Files") # Folder où se trouve les files
     msg_a_print = "\n Liste des fichiers : \n "
     for fichier in list_files:
         msg_a_print+= "{} \n".format(fichier)
     print(msg_a_print)
 
-
+#! Dictionnaire utilisé dans la fonction principale de ce fichier à savoir Check_server_functions (ci-dessous)
+#! Il est utilisé comme un switch case
+#! A gauche des ":" c'est la key (que l'on a défini tout en haut du fichier)
+#! A droite des ":" c'est la value qui est ici la fonction qui sera executé en fonction de la key que l'on saisi
 options = {
         EXIT_SERVER : Server_Exit,
         KILL_SERVER : Server_Kill,
@@ -135,11 +179,19 @@ options = {
         LISTF_SERVER : Server_ListF
     }
 
-def Check_server_functions(input_server, clients_connectes,connexion_principale,connexions_demandees):
+
+'''
+#* Fonction principale redirigeant vers la fonction adéquat de ce fichier par rapport à l'input server
+
+#? param input du server
+#? la liste de tous les clients connectés
+#? la connexion principale (la socket du server)
+'''
+def Check_server_functions(input_server, clients_connectes,connexion_principale):
     commande = input_server.split(' ')[0]
 
     try:
-        return options[commande](input_server, clients_connectes,connexion_principale,connexions_demandees)
+        return options[commande](input_server, clients_connectes,connexion_principale)
     except :
         msg = "Command not found, try using #Help"
         print(msg)

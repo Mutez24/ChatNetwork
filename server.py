@@ -154,27 +154,7 @@ def login_register(connexion_avec_client, infos_connexion,conn):
     clients_connectes.append(CurrentClient)
     # Log server
     print("\nUser '{}' connected at {} from @{}:{} \n".format(CurrentClient.username,datetime.now(),CurrentClient.IP,CurrentClient.port))
-
-'''
-#* Fonction permettant au server de communiquer en privé avec un client défini
-
-#TODO clients_connectes : liste des clients connectés
-#TODO input_str : input du server
-'''
-def private_server_client(clients_connectes,input_str):
-    global returned_string, private_bool, client_name_private
-    for client in clients_connectes:
-        if(client.username == client_name_private):
-            # On cherche le client à qui on a décidé de parler en privé
-            if (input_str == end_private_message):
-                # On ferme la communication avec le client
-                print("You ended the conversation with '{}' ".format(client_name_private))
-                (returned_string, client_name_private) = ("","")
-                private_bool = False
-            else:
-                # On envoie le message privé
-                msg = "PRIVATE MESSAGE FROM SERVER : " + input_str
-                Send_Message(msg, key, client.socket)
+    
 
 def Create_Room_Server(client, room_name):
     global Rooms
@@ -266,21 +246,12 @@ def main():
         if (inputQueue.qsize() > 0):
             input_str = inputQueue.get()
 
-            #! Check si le server veut parler en privé à un client
-            if (private_bool):
-                private_server_client(clients_connectes,input_str)
-
             try: 
-                #S'il n'y a pas de try except, le code va planter si on appuie juste sur entrée
+                #S'il n'y a pas de try except et qu'on appuie sur entrée, le code plante
                 if (input_str[0] == "#"):
                     #Vérification des commandes server
-                    (returned_string, client_name_private) = server_functions.Check_server_functions(input_str,clients_connectes,connexion_principale,connexions_demandees)
-                    if (returned_string == "exit"):              
-                        break            
-                    if (returned_string == "private_conv"):
-                        private_bool = True
-                        print("You are now speaking to '{}'\n".format(client_name_private))
-                        print("Write 'end' to end the private conversation")
+                    if (server_functions.Check_server_functions(input_str,clients_connectes,connexion_principale) == "exit"):              
+                        break
             except:
                 pass
 

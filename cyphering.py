@@ -46,7 +46,7 @@ def Send_Message(msg_encode, key, socket, force= False):
 
 def Receive_Message(key, socket):
     
-    msg = socket.recv(1024)
+    msg = socket.recv(2000)
     msg = msg.decode()
     msg_to_decrypt_split = msg.split("\n")
     for i in range(len(msg_to_decrypt_split)):

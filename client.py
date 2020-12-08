@@ -171,8 +171,7 @@ def main():
 				#connexion_avec_serveur.send(msg_a_envoyer)
 				
 		try:	
-			msg_recu = Receive_Message(key, connexion_avec_serveur)
-			msg_recu = msg_recu.decode()
+			msg_recu = Receive_Message(key, connexion_avec_serveur).decode()
 
 			#! Message envoyés par le serveur
 			#! Un msg ayant cette forme exacte provient forcément du server

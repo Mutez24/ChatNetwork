@@ -23,9 +23,8 @@ def PolyDecryption(to_decrypt, key):
     return decrypted     
 
 def Send_Message(msg_encode, key, socket, force= False):
-    msg = msg_encode.decode()
     #Si le message est trop long on retourne un message d'erreur
-    if (len(msg)>280 and not force):
+    if (len(msg_encode)>280 and not force):
         print("Your message is too long to be sent (over 280 character)")
     #Sinon on l'envoie
 
@@ -34,7 +33,7 @@ def Send_Message(msg_encode, key, socket, force= False):
     #! Inversement pour la décryption
     #! Sinon tu modifies tes fonctions crypt décrypt
     else:
-        msg_a_crypter_split = msg.split("\n")
+        msg_a_crypter_split = msg_encode.split("\n")
         for i in range(len(msg_a_crypter_split)):
             msg_a_crypter_split[i]=PolyEncryption(msg_a_crypter_split[i],key)
         msg_crypter_join = "\n".join(msg_a_crypter_split)

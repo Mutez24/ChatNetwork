@@ -34,8 +34,7 @@ def Server_Exit(input_server, clients_connectes,connexion_principale,connexions_
     if(input_server == EXIT_SERVER):
         print("Server closing...")
         for client in clients_connectes:
-            Send_Message(b"Server shutdown", key, client.socket)
-            #client.socket.send(b"Server shutdown")
+            Send_Message("Server shutdown", key, client.socket)
             client.socket.close()
         
         ''' test pour close les users qui sont en train de se connecter ou creer un compte quand le serveur shutdown. Si fonctionne pas retirer connexion_demandees 
@@ -55,8 +54,7 @@ def Server_Kill(input_server, clients_connectes,connexion_principale,connexions_
         for client in clients_connectes:
             if (client.username == input_server.split(' ')[1]):
                 client_connected_existed = True
-                Send_Message(b"You were kicked by server", key, client.socket)
-                #client.socket.send(b"You were kicked by server")
+                Send_Message("You were kicked by server", key, client.socket)
                 client.socket.close()
                 clients_connectes.remove(client)
                 print("User '{}' was kicked by server at {} from @{}:{}".format(client.username, datetime.now(), client.IP, client.port))
@@ -64,8 +62,7 @@ def Server_Kill(input_server, clients_connectes,connexion_principale,connexions_
                 for client_not_kicked in clients_connectes:
                     if (client_not_kicked != client):
                         msg = "User '{}' was kicked by server".format(input_server.split(' ')[1])
-                        Send_Message(msg.encode(), key, client_not_kicked.socket)
-                        #client_not_kicked.socket.send(msg.encode())
+                        Send_Message(msg, key, client_not_kicked.socket)
     
     if (len(input_server.split(' ')) == 1):
         print("Please write a client name after the command")
@@ -99,8 +96,7 @@ def Server_Alert(input_server, clients_connectes,connexion_principale,connexions
         msg = "MESSAGE FROM SERVER :" +msg
 
         for client in clients_connectes:
-            Send_Message(msg.encode(), key, client.socket)
-            #client.socket.send(msg.encode())
+            Send_Message(msg, key, client.socket)
 
     else:
         print("There is nothing to send. If you want to send something, write a message after the command")

@@ -102,7 +102,7 @@ def save_file(msg_recu, connexion_avec_serveur):
 			# Dossier déjà existant
 			pass
 		filename_for_save = "Files_Downloaded_from_server/" + filename
-		Send_Message(b"OK DOWNLOAD", key, connexion_avec_serveur)
+		Send_Message("OK DOWNLOAD", key, connexion_avec_serveur)
 		# Alerte le serveur que le client est prêt à recevoir la data du fichier
 		sum_bytes=0
 		percent=0
@@ -143,7 +143,7 @@ def main():
 	connexion_avec_serveur.connect((hote, port))
 	connexion_avec_serveur.settimeout(0.05)
 
-	msg_a_envoyer = b""
+	msg_a_envoyer = ""
 
 	# #Exit nous sert de message de sortie
 	while msg_a_envoyer != b"#Exit":
@@ -162,14 +162,12 @@ def main():
 					# Si le fichier existe bien, on attend que le serveur nous dise qu'il est prêt à le recevoir
 					# Pour cela on attend qu'il nous envoie "OK UPLOAD"
 					Send_Message(msg_a_envoyer, key, connexion_avec_serveur)
-					#connexion_avec_serveur.send(msg_a_envoyer)
 					serveur_ready = False
 					recu = ""
 					# On attend que le serveur soit prêt
 					while(not serveur_ready):
 						try:
 							recu = Receive_Message(key, connexion_avec_serveur).decode()
-							#recu = connexion_avec_serveur.recv(1024).decode()
 						except:
 							pass
 						if(recu == "OK UPLOAD"): serveur_ready=True # Serveur prêt
@@ -177,13 +175,11 @@ def main():
 					threading.Thread(target=send_file, args=(filename,filesize,connexion_avec_serveur,)).start()
 			else:
 				# Si l'on ne souhaite pas faire d'Upload de fichier, on peut envoyer le message tel quel
-				msg_a_envoyer = msg_a_envoyer.encode()	
 				Send_Message(msg_a_envoyer, key, connexion_avec_serveur)		
 				#connexion_avec_serveur.send(msg_a_envoyer)
 				
 		try:	
 			msg_recu = Receive_Message(key, connexion_avec_serveur)
-			#msg_recu = connexion_avec_serveur.recv(1024)
 			msg_recu = msg_recu.decode()
 
 			#! Message envoyés par le serveur

@@ -59,8 +59,7 @@ def login_register(connexion_avec_client, infos_connexion,conn):
         while(response != "1" and response != "2"):
             msg = "Bienvenue, appuyez sur 1 pour vous connecter ou 2 pour creer un compte"
             Send_Message(msg, key, connexion_avec_client)
-            msg = Receive_Message(key, connexion_avec_client)
-            response = msg.decode()
+            response = Receive_Message(key, connexion_avec_client).decode()
         
 
         if(response == "1"):
@@ -69,8 +68,7 @@ def login_register(connexion_avec_client, infos_connexion,conn):
             while(unconnected):
                 msg = "Username :"
                 Send_Message(msg, key, connexion_avec_client)
-                username = Receive_Message(key, connexion_avec_client)
-                username = username.decode()
+                username = Receive_Message(key, connexion_avec_client).decode()
                 for client in clients_connectes:
                     if (client.username == username):
                         client_already_connected = True
@@ -82,8 +80,7 @@ def login_register(connexion_avec_client, infos_connexion,conn):
                     break
                 msg = "Password :"
                 Send_Message(msg, key, connexion_avec_client)
-                password = Receive_Message(key, connexion_avec_client)
-                password = password.decode()
+                password = Receive_Message(key, connexion_avec_client).decode()
                 cursor = conn.execute("SELECT * FROM user WHERE USERNAME = '{}' AND PASSWORD = '{}'".format(username,password))
                 conn.commit()
                 if(cursor.fetchone() != None):
@@ -107,14 +104,12 @@ def login_register(connexion_avec_client, infos_connexion,conn):
                     while(' ' in username):
                         msg = "Username :"
                         Send_Message(msg, key, connexion_avec_client)
-                        username = Receive_Message(key, connexion_avec_client)
-                        username = username.decode()
+                        username = Receive_Message(key, connexion_avec_client).decode()
                         if (' ' in username):
                             Send_Message("Username must not contain spaces\n", key, connexion_avec_client)
                     msg = "Password :"
                     Send_Message(msg, key, connexion_avec_client)
-                    password = Receive_Message(key, connexion_avec_client)
-                    password = password.decode()
+                    password = Receive_Message(key, connexion_avec_client).decode()
                     conn.execute("INSERT INTO user (USERNAME,PASSWORD) VALUES ('{}','{}')".format(username,password))
                     conn.commit()
                     unconnected = False

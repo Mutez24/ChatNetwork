@@ -133,9 +133,16 @@ def main():
 	port = 12800
 
 	# Création de la connexion et déclaration du timeout, il nous évite de rester bloqués à attendre un input
-	connexion_avec_serveur = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-	connexion_avec_serveur.connect((hote, port))
-	connexion_avec_serveur.settimeout(0.05)
+
+	try:
+		connexion_avec_serveur = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+		connexion_avec_serveur.connect((hote, port))
+		connexion_avec_serveur.settimeout(0.05)
+	except ConnectionRefusedError:
+		print("Erreur Serveur")
+		return 
+		#Sortir du main
+
 
 	msg_a_envoyer = ""
 

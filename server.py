@@ -74,91 +74,100 @@ def login_register(connexion_avec_client, infos_connexion,conn):
     response=""
     client_already_connected = True
 
-    while(client_already_connected):
-        while(response != "1" and response != "2"):
+    try:
+        # On met un try car si un client est en cours de connexion alors que le server se ferme, sa socket va être fermée
+        # Dès lors, toutes les fonctions Receive_Message et Send_Message vont crasher
+        # On anticipe donc cela avec un except personnalisé
+        while(client_already_connected):
+            while(response != "1" and response != "2"):
 
-            # Empêche de répondre autre chose que 1 et 2
-            msg = "Bienvenue, appuyez sur 1 pour vous connecter ou 2 pour creer un compte"
-            Send_Message(msg, key, connexion_avec_client)
-            response = Receive_Message(key, connexion_avec_client).decode()
-        
-
-        if(response == "1"):
-            # Si le client veut se connecter avec un compte déjà existant
-            unconnected = True
-            client_already_connected = False
-            while(unconnected):
-                msg = "Username :"
-                # Demande de username
+                # Empêche de répondre autre chose que 1 et 2
+                msg = "Bienvenue, appuyez sur 1 pour vous connecter ou 2 pour creer un compte"
                 Send_Message(msg, key, connexion_avec_client)
-                username = Receive_Message(key, connexion_avec_client).decode()
-                # Check si le client est déjà connecté
-                for client in clients_connectes:
-                    if (client.username == username):
-                        client_already_connected = True
-                        msg = "User already connected, try another account if you have one or create a new one if you really want to be connected. You will now be redirected to the welcome message\n\n"
-                        Send_Message(msg, key, connexion_avec_client)
+                response = Receive_Message(key, connexion_avec_client).decode()
+            
+
+            if(response == "1"):
+                # Si le client veut se connecter avec un compte déjà existant
+                unconnected = True
+                client_already_connected = False
+                while(unconnected):
+                    msg = "Username :"
+                    # Demande de username
+                    Send_Message(msg, key, connexion_avec_client)
+                    username = Receive_Message(key, connexion_avec_client).decode()
+                    # Check si le client est déjà connecté
+                    for client in clients_connectes:
+                        if (client.username == username):
+                            client_already_connected = True
+                            msg = "User already connected, try another account if you have one or create a new one if you really want to be connected. You will now be redirected to the welcome message\n\n"
+                            Send_Message(msg, key, connexion_avec_client)
+                            break
+                    if (client_already_connected):
+                        response = "" 
+                        # On réinitialise la réponse pour que le choix 1 ou 2 soit de nouveau proposé au client
                         break
-                if (client_already_connected):
-                    response = "" 
-                    # On réinitialise la réponse pour que le choix 1 ou 2 soit de nouveau proposé au client
-                    break
-                msg = "Password :"
-                Send_Message(msg, key, connexion_avec_client)
-                password = Receive_Message(key, connexion_avec_client).decode()
-                # Check du password
-                cursor = conn.execute("SELECT * FROM user WHERE USERNAME = '{}' AND PASSWORD = '{}'".format(username,password))
-                conn.commit()
-                if(cursor.fetchone() != None):
-                    msg = "Connexion reussie, bienvenue dans le chat public"
-                    Send_Message(msg, key, connexion_avec_client)
-                    unconnected = False
-                else:
-                    msg = "Wrong credentials\n"
-                    Send_Message(msg, key, connexion_avec_client)
-                    unconnected = False 
-                    # On laisse la possibilité de se créer un compte si jamais
-                    response = ""
-                    client_already_connected=True
-                
-        # Création de compte
-        if(response == "2"):
-            unconnected = True
-            client_already_connected = False
-            while(unconnected):
-                try:
-                    username = " "
-                    while(' ' in username):
-                        msg = "Username :"
-                        Send_Message(msg, key, connexion_avec_client)
-                        username = Receive_Message(key, connexion_avec_client).decode()
-                        if (' ' in username):
-                            Send_Message("Username must not contain spaces\n", key, connexion_avec_client)
                     msg = "Password :"
                     Send_Message(msg, key, connexion_avec_client)
                     password = Receive_Message(key, connexion_avec_client).decode()
-                    conn.execute("INSERT INTO user (USERNAME,PASSWORD) VALUES ('{}','{}')".format(username,password))
+                    # Check du password
+                    cursor = conn.execute("SELECT * FROM user WHERE USERNAME = '{}' AND PASSWORD = '{}'".format(username,password))
                     conn.commit()
-                    unconnected = False
-                    msg = "Creation de compte reussie, bienvenue dans le chat public"
-                    Send_Message(msg, key, connexion_avec_client)
+                    if(cursor.fetchone() != None):
+                        msg = "Connexion reussie, bienvenue dans le chat public"
+                        Send_Message(msg, key, connexion_avec_client)
+                        unconnected = False
+                    else:
+                        msg = "Wrong credentials\n"
+                        Send_Message(msg, key, connexion_avec_client)
+                        unconnected = False 
+                        # On laisse la possibilité de se créer un compte si jamais
+                        response = ""
+                        client_already_connected=True
+                    
+            # Création de compte
+            if(response == "2"):
+                unconnected = True
+                client_already_connected = False
+                while(unconnected):
+                    try:
+                        username = " "
+                        while(' ' in username):
+                            msg = "Username :"
+                            Send_Message(msg, key, connexion_avec_client)
+                            username = Receive_Message(key, connexion_avec_client).decode()
+                            if (' ' in username):
+                                Send_Message("Username must not contain spaces\n", key, connexion_avec_client)
+                        msg = "Password :"
+                        Send_Message(msg, key, connexion_avec_client)
+                        password = Receive_Message(key, connexion_avec_client).decode()
+                        conn.execute("INSERT INTO user (USERNAME,PASSWORD) VALUES ('{}','{}')".format(username,password))
+                        conn.commit()
+                        unconnected = False
+                        msg = "Creation de compte reussie, bienvenue dans le chat public"
+                        Send_Message(msg, key, connexion_avec_client)
 
-                except sqlite3.IntegrityError:
-                    msg = "Username already existing"
-                    Send_Message(msg, key, connexion_avec_client)
-                    unconnected = False 
-                    #On laisse la possibilité de se créer un compte si jamais
-                    response = ""
-                    client_already_connected=True
+                    except sqlite3.IntegrityError:
+                        msg = "Username already existing"
+                        Send_Message(msg, key, connexion_avec_client)
+                        unconnected = False 
+                        #On laisse la possibilité de se créer un compte si jamais
+                        response = ""
+                        client_already_connected=True
 
-    # Création d'une entité client et ajout à la liste des clients connectés
-    CurrentClient = Client(username,infos_connexion[0],infos_connexion[1],connexion_avec_client)
-    clients_connectes.append(CurrentClient)
+        # Création d'une entité client et ajout à la liste des clients connectés
+        CurrentClient = Client(username,infos_connexion[0],infos_connexion[1],connexion_avec_client)
+        clients_connectes.append(CurrentClient)
 
-    # On supprime le client, dont la connexion vient d'être accepté, de la liste des clients en attente
-    clients_awaiting_connection.remove(connexion_avec_client)
-    # Log server
-    print("\nUser '{}' connected at {} from @{}:{} \n".format(CurrentClient.username,datetime.now(),CurrentClient.IP,CurrentClient.port))
+        # On supprime le client, dont la connexion vient d'être accepté, de la liste des clients en attente
+        clients_awaiting_connection.remove(connexion_avec_client)
+        # Log server
+        print("\nUser '{}' connected at {} from @{}:{} \n".format(CurrentClient.username,datetime.now(),CurrentClient.IP,CurrentClient.port))
+
+
+    except ConnectionAbortedError:
+        pass
+        
     
 ''' fonction non utilisé à ce jour mais aurait pu l'être avec Create_Room2_RF dans romm_functions.py si le tout avait été plus fonctionnel
 def Create_Room_Server(client, room_name):

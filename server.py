@@ -58,11 +58,9 @@ def login_register(connexion_avec_client, infos_connexion,conn):
 
     while(client_already_connected):
         while(response != "1" and response != "2"):
-            msg = b"Bienvenue, appuyez sur 1 pour vous connecter ou 2 pour creer un compte"
+            msg = "Bienvenue, appuyez sur 1 pour vous connecter ou 2 pour creer un compte"
             Send_Message(msg, key, connexion_avec_client)
-            #connexion_avec_client.send(msg)
             msg = Receive_Message(key, connexion_avec_client)
-            #msg = connexion_avec_client.recv(1024)
             response = msg.decode()
         
 
@@ -70,42 +68,35 @@ def login_register(connexion_avec_client, infos_connexion,conn):
             unconnected = True
             client_already_connected = False
             while(unconnected):
-                msg = b"Username :"
+                msg = "Username :"
                 Send_Message(msg, key, connexion_avec_client)
-                #connexion_avec_client.send(msg)
                 username = Receive_Message(key, connexion_avec_client)
-                #username = connexion_avec_client.recv(1024)
                 username = username.decode()
                 for client in clients_connectes:
                     if (client.username == username):
                         client_already_connected = True
-                        msg = b"User already connected, try another account if you have one or create a new one if you really want to be connected. You will now be redirected to the welcome message\n\n"
+                        msg = "User already connected, try another account if you have one or create a new one if you really want to be connected. You will now be redirected to the welcome message\n\n"
                         Send_Message(msg, key, connexion_avec_client)
-                        #connexion_avec_client.send(msg)
                         break
                 if (client_already_connected):
                     response = "" #on reinitialise la reponse sinon on ne re-rentrera pas dans le premier while verifiant la reponse du user
                     break
-                msg = b"Password :"
+                msg = "Password :"
                 Send_Message(msg, key, connexion_avec_client)
-                #connexion_avec_client.send(msg)
                 password = Receive_Message(key, connexion_avec_client)
-                #password = connexion_avec_client.recv(1024)
                 password = password.decode()
                 cursor = conn.execute("SELECT * FROM user WHERE USERNAME = '{}' AND PASSWORD = '{}'".format(username,password))
                 conn.commit()
                 if(cursor.fetchone() != None):
-                    msg = b"Connexion reussie, bienvenue dans le chat public"
+                    msg = "Connexion reussie, bienvenue dans le chat public"
                     Send_Message(msg, key, connexion_avec_client)
-                    #connexion_avec_client.send(msg)
                     unconnected = False
                 else:
-                    msg = b"Wrong credentials\n"
+                    msg = "Wrong credentials\n"
                     Send_Message(msg, key, connexion_avec_client)
                     unconnected = False #on laisse la possibilité de se créer un compte si jamais
                     response = ""
                     client_already_connected=True
-                    #connexion_avec_client.send(msg)
                 
                     
         if(response == "2"):
@@ -115,34 +106,27 @@ def login_register(connexion_avec_client, infos_connexion,conn):
                 try:
                     username = " "
                     while(' ' in username):
-                        msg = b"Username :"
+                        msg = "Username :"
                         Send_Message(msg, key, connexion_avec_client)
-                        #connexion_avec_client.send(msg)
                         username = Receive_Message(key, connexion_avec_client)
-                        #username = connexion_avec_client.recv(1024)
                         username = username.decode()
                         if (' ' in username):
-                            Send_Message(b"Username must not contain spaces\n", key, connexion_avec_client)
-                            #connexion_avec_client.send(b"Username must not contain spaces\n")
-                    msg = b"Password :"
+                            Send_Message("Username must not contain spaces\n", key, connexion_avec_client)
+                    msg = "Password :"
                     Send_Message(msg, key, connexion_avec_client)
-                    #connexion_avec_client.send(msg)
                     password = Receive_Message(key, connexion_avec_client)
-                    #password = connexion_avec_client.recv(1024)
                     password = password.decode()
                     conn.execute("INSERT INTO user (USERNAME,PASSWORD) VALUES ('{}','{}')".format(username,password))
                     conn.commit()
                     unconnected = False
-                    msg = b"Creation de compte reussie, bienvenue dans le chat public"
+                    msg = "Creation de compte reussie, bienvenue dans le chat public"
                     Send_Message(msg, key, connexion_avec_client)
-                    #connexion_avec_client.send(msg)
                 except sqlite3.IntegrityError:
-                    msg = b"Username already existing"
+                    msg = "Username already existing"
                     Send_Message(msg, key, connexion_avec_client)
                     unconnected = False #on laisse la possibilité de se créer un compte si jamais
                     response = ""
                     client_already_connected=True
-                    #connexion_avec_client.send(msg)
                  
     CurrentClient = Client(username,infos_connexion[0],infos_connexion[1],connexion_avec_client)
     clients_connectes.append(CurrentClient)
@@ -158,8 +142,7 @@ def private_server_client(clients_connectes,input_str):
                 private_bool = False
             else:
                 msg = "PRIVATE MESSAGE FROM SERVER : " + input_str
-                Send_Message(msg.encode(), key, client.socket)
-                #client.socket.send(msg.encode())
+                Send_Message(msg, key, client.socket)
 
 def Create_Room_Server(client, room_name):
     global Rooms
@@ -169,51 +152,41 @@ def Create_Room_Server(client, room_name):
         choice=""
         while(choice!="1" and choice !="2"):
             msg="\nType 1 to add a new client or 2 to finish the creation: "
-            Send_Message(msg.encode(), key, client.socket)
-            #client.socket.send(msg.encode())
+            Send_Message(msg, key, client.socket)
             choice= Receive_Message(key, client.socket).decode()
-            #choice = client.socket.recv(1024).decode()
         if(choice=="1"):
             client_connected_existed=False
             client_functions.Check_client_functions("#ListU", client, clients_connectes, client_en_envoi_fichier, Rooms)
-            Send_Message(b"Please, write one of the name mentionned above: ", key, client.socket)
-            #client.socket.send(b"Please, write one of the name mentionned above: ")
+            Send_Message("Please, write one of the name mentionned above: ", key, client.socket)
             client_typed= Receive_Message(key, client.socket).decode()
-            #client_typed = client.socket.recv(1024).decode()
             for other_client in clients_connectes:
                 if (other_client.username == client_typed and (other_client not in new_room.clients)):
                     new_room.clients.append(other_client)
                     client_connected_existed = True
             if(not client_connected_existed):
                 msg_error="\nclient '{}' doesn't exist or is unconnected or is already in your room.\n".format(client_typed)
-                Send_Message(msg_error.encode(), key, client.socket)
-                #client.socket.send(msg_error.encode())
+                Send_Message(msg_error, key, client.socket)
         else:
             if(len(new_room.clients)>=3):
                 Rooms.append(new_room)
                 print("The room '{}' was created successfully at {} by '{}' from @{}:{}\n".format(new_room.name,datetime.now(),client.username,client.IP,client.port))
                 msg_success="Room '{}' created successfully!".format(room_name) 
-                Send_Message(msg_success.encode(), key, client.socket)  
-                #client.socket.send(msg_success.encode())
+                Send_Message(msg_success, key, client.socket)
                 for added_client in new_room.clients:
                     if(added_client.username!=client.username):
                         msg_to_added_client="You were added to the room '{}' by '{}'".format(new_room.name, client.username)
-                        Send_Message(msg_to_added_client.encode(), key, added_client.socket)
-                        #added_client.socket.send(msg_to_added_client.encode())         
+                        Send_Message(msg_to_added_client, key, added_client.socket)     
                 
                 break
             else:
                 msg_exit="You don't have enough clients in your room (3).\n"
                 msg_exit+="If you want to exit this process, type : 'exit'.\n"
                 msg_exit+="Otherwise, press any other key and then enter.\n"
-                Send_Message(msg_exit.encode(), key, client.socket) 
-                #client.socket.send(msg_exit.encode())
+                Send_Message(msg_exit, key, client.socket)
                 choice= Receive_Message(key, client.socket).decode()
-                #choice = client.socket.recv(1024).decode()
                 if(choice=="exit"):
                     msg_exit="Your room wasn't created, you are now back in the chat.\n"
-                    Send_Message(msg_exit.encode(), key, client.socket)
-                    #client.socket.send(msg_exit.encode())
+                    Send_Message(msg_exit, key, client.socket)
                     break
     clients_connectes.append(client)
 
@@ -306,7 +279,6 @@ def main():
                     clients_connectes.remove(client) #On le retire des clients connectés
                     continue #On passe au client suivant
                 
-                #msg_recu = client.socket.recv(1024)
                 # Peut planter si le message contient des caractères spéciaux
                 msg_recu = msg_recu.decode()
                 
@@ -328,22 +300,20 @@ def main():
                     for other_client in clients_connectes:
                         if(other_client.username==client.room):
                             msg_a_envoyer = "Private: '{}' > {}".format(client.username,msg_recu)
-                            Send_Message(msg_a_envoyer.encode(), key, other_client.socket)
-                            #other_client.socket.send(msg_a_envoyer.encode())
+                            Send_Message(msg_a_envoyer, key, other_client.socket)
                             print("{} @{}:{} to @{}:{} | '{}' to '{}' > {} \n".format(datetime.now(), client.IP, client.port, other_client.IP, other_client.port, client.username, other_client.username, msg_recu)) #Affichage côté serveur
                     for room in Rooms:
                         if(room.name==client.room):
                             for receveur_client in room.clients:
                                 if(client != receveur_client):
                                     msg_a_envoyer = "Room '{}': '{}' > {}".format(room.name,client.username,msg_recu)
-                                    Send_Message(msg_a_envoyer.encode(), key, receveur_client.socket)
+                                    Send_Message(msg_a_envoyer, key, receveur_client.socket)
                             
                 else:                                               
                     for receveur_client in clients_connectes:
                         if(client != receveur_client):
                             msg_a_envoyer = "Public: '{}' > {}".format(client.username,msg_recu)
-                            Send_Message(msg_a_envoyer.encode(), key, receveur_client.socket)
-                            #receveur_client.socket.send(msg_a_envoyer.encode()) #Envoi du msg reçu sur le channel public
+                            Send_Message(msg_a_envoyer, key, receveur_client.socket) #Envoi du msg reçu sur le channel public
                     print("{} @{}:{} | '{}' > {} \n".format(datetime.now(), client.IP, client.port, client.username, msg_recu)) #Affichage côté serveur
                 
 

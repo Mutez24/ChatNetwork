@@ -62,7 +62,7 @@ def save_file(msg_recu, connexion_avec_serveur):
 		filename, filesize = msg_recu.split("<>")
 		filesize =  int(filesize)
 		filename_for_save = "Download_Server/" + filename
-		Send_Message(b"OK DOWNLOAD", key, connexion_avec_serveur)
+		Send_Message("OK DOWNLOAD", key, connexion_avec_serveur)
 		sum_bytes=0
 		percent=0
 		with open(filename_for_save, "wb") as f:
@@ -96,8 +96,8 @@ def main():
 	connexion_avec_serveur.connect((hote, port))
 	connexion_avec_serveur.settimeout(0.05)
 
-	msg_a_envoyer = b""
-	while msg_a_envoyer != b"#Exit":
+	msg_a_envoyer = ""
+	while msg_a_envoyer != "#Exit":
 		if (inputQueue.qsize() > 0):			
 			msg_a_envoyer = inputQueue.get()
 			#Fct check character + si ok encryption
@@ -105,25 +105,21 @@ def main():
 				msg_a_envoyer,filename,filesize = Check_file_size(msg_a_envoyer)
 				if(filesize != ""): #Check if file really exists
 					Send_Message(msg_a_envoyer, key, connexion_avec_serveur)
-					#connexion_avec_serveur.send(msg_a_envoyer)
 					serveur_ready = False
 					recu = ""
 					while(not serveur_ready):
 						try:
 							recu = Receive_Message(key, connexion_avec_serveur).decode()
-							#recu = connexion_avec_serveur.recv(1024).decode()
 						except:
 							pass
 						if(recu == "OK UPLOAD"): serveur_ready=True
 					threading.Thread(target=send_file, args=(filename,filesize,connexion_avec_serveur,)).start()
 			else:
-				msg_a_envoyer = msg_a_envoyer.encode()	
-				Send_Message(msg_a_envoyer, key, connexion_avec_serveur)		
-				#connexion_avec_serveur.send(msg_a_envoyer)
+				msg_a_envoyer = msg_a_envoyer
+				Send_Message(msg_a_envoyer, key, connexion_avec_serveur)
 				
 		try:	
 			msg_recu = Receive_Message(key, connexion_avec_serveur)
-			#msg_recu = connexion_avec_serveur.recv(1024)
 			msg_recu = msg_recu.decode()
 
 			if (msg_recu == "Server shutdown" or msg_recu == "You were kicked by server"): #ce message ne peut pas être envoyé par un client car un message envoyé par un client contient au minimum le username et un chevron

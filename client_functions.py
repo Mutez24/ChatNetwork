@@ -37,24 +37,48 @@ UPLOAD_CLIENT = "#TrfU" #Command used by clients to upload files
 RING_USER = "#Ring" #Command used by clients to ring a user if he's logged in
 LISTF_CLIENT = "#ListF" #Command used by clients to see all files
 DOWNLOAD_CLIENT = "#TrfD" #Command used by clients to upload files
-#TODO TOUJOURS mettre les 3 mêmes paramètres dans chaque fonction même si on ne se sert pas des 3
+#TODO TOUJOURS mettre les 4 mêmes paramètres dans chaque fonction même si on ne se sert pas des 4
 #TODO En effet les appels de fonctions sont définis par défaut avec ces paramètres dans la fonction Check_client_functions
+
+
+'''
+#* Fonction qui permet a un client de fermer sa connexion au serveur
+
+#TODO msg_recu : message ecrit par un client
+#TODO client : client qui a ecrit le message
+#TODO clients_connectés : liste qui contient les clients connectés
+#TODO Rooms : azerty
+'''
 
 def Client_Exit (msg_recu,client, clients_connectes, Rooms):
     if(msg_recu == EXIT_CLIENT):
+        # On notifie sur le serveur et tous les clients que le client a quitter le chat
         msg_client="'{}' left the chat".format(client.username)
+        # Pour le serveur
         print("{} @{}:{} | '{}' has left the chat \n".format(datetime.now(), client.IP, client.port, client.username)) 
-
+        # Pour les clients
         for element in clients_connectes:
             if (client != element):
                 Send_Message(msg_client, key, element.socket)
+        # On retire les clients de la liste des clients connectés et on ferme sa session
         clients_connectes.remove(client)
         client.socket.close()
     
     else :
         raise Exception
-        
+
+
+'''
+#* Fonction qui permet a un client d'avoir accès a la liste des commandes qu'il peut effectuer
+
+#TODO msg_recu : message ecrit par un client
+#TODO client : client qui a ecrit le message
+#TODO clients_connectés : liste qui contient les clients connectés
+#TODO Rooms : azerty
+'''
+
 def Client_Help (msg_recu,client, clients_connectes, Rooms):
+    # Message qui affiche la liste des commandes
     if(msg_recu == HELP_CLIENT):
         msg = "You can find a list of available commands below : \n \
         #Help (list command) \n \
@@ -74,30 +98,55 @@ def Client_Help (msg_recu,client, clients_connectes, Rooms):
         #LeaveRoom <room name> (Allow a client to leave a room)\n \
         #ListClientRoom <room name> (Allow a client to see the members of the room)\n"
 
+        # On envoie le message au client
         Send_Message(msg, key, client.socket, force=True)
     else:
         raise Exception
+
+'''
+#* Fonction qui permet a un client d'avoir accès a la liste des clients conectés
+
+#TODO msg_recu : message ecrit par un client
+#TODO client : client qui a ecrit le message
+#TODO clients_connectés : liste qui contient les clients connectés
+#TODO Rooms : azerty
+'''
 
 def Client_ListU (msg_recu,client, clients_connectes, Rooms):
     if(msg_recu == LISTU_CLIENT):
         msg=("\nList of users (except you of course): \n") 
         count_user=1
 
+        # On parcours la liste des clients (excepté le client qui execute la commande) pour les stockés dans un string
         for element in clients_connectes:
             if (client != element):
                 msg+=("User {}: '{}' @{}:{}\n".format(count_user, element.username, element.IP, element.port))
                 count_user+=1
         msg+="\n"
+        # On envoie le message au client
         Send_Message(msg, key, client.socket, force=True)
     else :
         raise Exception
 
+'''
+#* Fonction qui permet a un client d'envoyer un message privé à un autre client
+
+#TODO msg_recu : message ecrit par un client
+#TODO client : client qui a ecrit le message
+#TODO clients_connectés : liste qui contient les clients connectés
+#TODO Rooms : azerty
+'''
+
 def Client_Private(msg_recu,client, clients_connectes, Rooms):
     client_connected_existed = False
-    if(len(msg_recu.split(' ')) == 2): #on peut se permettre de verifier s'il n'y a que deux termes car le username ne peut pas contenir d'espace (regle qu'on a fixée)
+    #on peut se permettre de verifier s'il n'y a que deux termes car le username ne peut pas contenir d'espace (regle qu'on a fixée)
+    if(len(msg_recu.split(' ')) == 2):
+        # On parcour la liste des clients connectés pour trouver le client à joindre en privé
         for other_client in clients_connectes:
             if (other_client.username == msg_recu.split(' ')[1]):
+                # Si le client existe, indicateur passe a True
                 client_connected_existed = True
+                # Les room de chacun deviennent les usernames de l'autre
                 other_client.room=client.username
                 client.room=other_client.username
                 msg = "\nYou entered a private chat with '{}'.\n".format(client.username) 
@@ -106,49 +155,152 @@ def Client_Private(msg_recu,client, clients_connectes, Rooms):
                 msg = "You entered a private chat with {}.\n".format(other_client.username) 
                 msg+="If you want to get back in the public chat, type '#Public'."
                 Send_Message(msg, key, client.socket)
-    
+    # Si la commande n'est pas correct
     if (len(msg_recu.split(' ')) == 1):
         Send_Message("Please write a user's name after the command", key, client.socket)
-
+    # Si le client n'existe pas ou n'est pas connecté
     if (client_connected_existed == False and len(msg_recu.split(' ')) != 1):
         Send_Message("User not connected or not existing", key, client.socket)
 
+'''
+#* Fonction qui permet a un client qui était dans une room de revenir dans le chat public
+
+#TODO msg_recu : message ecrit par un client
+#TODO client : client qui a ecrit le message
+#TODO clients_connectés : liste qui contient les clients connectés
+#TODO Rooms : azerty
+'''
+
 def Client_Public(msg_recu,client, clients_connectes, Rooms):
     if(msg_recu==PUBLIC_CLIENT):
+        # On vérifie qu'il n'est pas déjà en public
         if(client.room != "public"):
             for other_client in clients_connectes:
+                # Si dans la liste des clients conectés, le client à comme room le username du client qui veut quitter 
+                # la conversatino privé, on le previent du départ de celui-ci
                 if(other_client.username==client.room):
                     msg="'{}' left the private chat.".format(client.username)
                     Send_Message(msg, key, other_client.socket)
+            # On replace le client dans le chat public
             client.room="public"
     else:
         raise Exception
 
+'''
+#* Fonction qui fait appel a la fonction List_Room_RF
+#* permet a un client de voir la liste des rooms dont il fait partis
+
+#TODO msg_recu : message ecrit par un client
+#TODO client : client qui a ecrit le message
+#TODO clients_connectés : liste qui contient les clients connectés
+#TODO Rooms : azerty
+'''
 
 def List_Room(msg_recu, client, clients_connectes, Rooms):
     List_Room_RF(msg_recu, client, clients_connectes, Rooms)
 
+
+'''
+#* Fonction qui fait appel a la fonction Create_Room_RF
+#* permet a un client de créer une room
+
+#TODO msg_recu : message ecrit par un client
+#TODO client : client qui a ecrit le message
+#TODO clients_connectés : liste qui contient les clients connectés
+#TODO Rooms : azerty
+'''
+
 def Create_Room(msg_recu, client, clients_connectes, Rooms):
     Create_Room_RF(msg_recu, client, clients_connectes, Rooms)
 
+'''
+#* Fonction qui fait appel a la fonction Create_Room_2RF
+#* permet a un client de créer une room
+
+#TODO msg_recu : message ecrit par un client
+#TODO client : client qui a ecrit le message
+#TODO clients_connectés : liste qui contient les clients connectés
+#TODO Rooms : azerty
+'''
+
 def Create_Room2(msg_recu, client, clients_connectes, Rooms):
     Create_Room2_RF(msg_recu, client, clients_connectes, Rooms)                
-    
+
+'''
+#* Fonction qui fait appel a la fonction Join_Room_RF
+#* permet a un client de rejoindre une room
+
+#TODO msg_recu : message ecrit par un client
+#TODO client : client qui a ecrit le message
+#TODO clients_connectés : liste qui contient les clients connectés
+#TODO Rooms : azerty
+'''
+
 def Join_Room(msg_recu, client, clients_connectes, Rooms):
     Join_Room_RF(msg_recu, client, clients_connectes, Rooms)
+
+'''
+#* Fonction qui fait appel a la fonction Add_Room_RF
+#* permet a un client admin d'ajouter un autre client à sa room
+
+#TODO msg_recu : message ecrit par un client
+#TODO client : client qui a ecrit le message
+#TODO clients_connectés : liste qui contient les clients connectés
+#TODO Rooms : azerty
+'''
 
 def Add_Room(msg_recu, client, clients_connectes, Rooms):
     Add_Room_RF(msg_recu, client, clients_connectes, Rooms)
 
+
+'''
+#* Fonction qui fait appel a la fonction Kick_Room_RF
+#* permet a un client admin de retirer un autre client de sa room
+
+#TODO msg_recu : message ecrit par un client
+#TODO client : client qui a ecrit le message
+#TODO clients_connectés : liste qui contient les clients connectés
+#TODO Rooms : azerty
+'''
+
 def Kick_Room(msg_recu, client, clients_connectes, Rooms):
     Kick_Room_RF(msg_recu, client, clients_connectes, Rooms)
+
+'''
+#* Fonction qui fait appel a la fonction Leave_Room_RF
+#* permet a un client de se retirer de sa room
+
+#TODO msg_recu : message ecrit par un client
+#TODO client : client qui a ecrit le message
+#TODO clients_connectés : liste qui contient les clients connectés
+#TODO Rooms : azerty
+'''
 
 def Leave_Room(msg_recu, client, clients_connectes, Rooms):
     Leave_Room_RF(msg_recu, client, clients_connectes, Rooms)
 
+'''
+#* Fonction qui fait appel a la fonction List_Client_Room_RF
+#* permet a un client de voir la liste des clients present dans une room
+
+#TODO msg_recu : message ecrit par un client
+#TODO client : client qui a ecrit le message
+#TODO clients_connectés : liste qui contient les clients connectés
+#TODO Rooms : azerty
+'''
+
 def List_Client_Room(msg_recu, client, clients_connectes, Rooms):
     List_Client_Room_RF(msg_recu, client, clients_connectes, Rooms)
-                            
+
+'''
+#* Fonction qui permet à un client d'upload un fichier
+
+#TODO msg_recu : message ecrit par un client
+#TODO client : client qui a ecrit le message
+#TODO clients_connectés : liste qui contient les clients connectés
+#TODO Rooms : azerty
+'''
+
 def Client_Upload(msg_recu,client, clients_connectes, Rooms):
     filename, filesize = msg_recu.split("<>")
     filename = filename.split(" ",1)[1]
@@ -192,20 +344,43 @@ def Client_Upload(msg_recu,client, clients_connectes, Rooms):
     clients_connectes.append(client)
 
 
+'''
+#* Fonction qui permet à un client de notifier un autre client
+
+#TODO msg_recu : message ecrit par un client
+#TODO client : client qui a ecrit le message
+#TODO clients_connectés : liste qui contient les clients connectés
+#TODO Rooms : azerty
+'''
+
 def Client_Ring(msg_recu,client, clients_connectes, Rooms):
     client_target_existed = False
-    if(len(msg_recu.split(' ')) == 2): #on peut se permettre de verifier s'il n'y a que deux termes car le username ne peut pas contenir d'espace (regle qu'on a fixée)
+    #on peut se permettre de verifier s'il n'y a que deux termes car le username ne peut pas contenir d'espace (regle qu'on a fixée)
+    if(len(msg_recu.split(' ')) == 2):
+        # On verifie que le client est dans la liste des clients connectés
         for other_client in clients_connectes:
+            # Si le client exite et est connecté on lui envoie le ping
             if (other_client.username == msg_recu.split(' ')[1]):
                 client_target_existed = True
                 msg = "\nThe user : '{}' try to reach you.\n".format(client.username) 
                 Send_Message(msg, key, other_client.socket)
-    
+    # Si la commande est mal rentrée
     if (len(msg_recu.split(' ')) == 1):
         Send_Message("Please write a user's name after the command", key, client.socket)
-
+    
+    # Si le client n'est pas connecté ou n'existe pas
     if (client_target_existed == False and len(msg_recu.split(' ')) != 1):
         Send_Message("User you tried to ring is not connected or not existing", key, client.socket)
+
+
+'''
+#* Fonction qui permet à un client de voir tous les fichiers
+
+#TODO msg_recu : message ecrit par un client
+#TODO client : client qui a ecrit le message
+#TODO clients_connectés : liste qui contient les clients connectés
+#TODO Rooms : azerty
+'''
 
 def Client_ListF(msg_recu,client, clients_connectes, Rooms):
     list_files = os.listdir("Files")
@@ -214,6 +389,16 @@ def Client_ListF(msg_recu,client, clients_connectes, Rooms):
         msg_a_envoyer+= "{} \n".format(fichier)
     msg_a_envoyer = msg_a_envoyer
     Send_Message(msg_a_envoyer,key,client.socket, force=True)
+
+
+'''
+#* Fonction qui permet à un client de download un fichier
+
+#TODO msg_recu : message ecrit par un client
+#TODO client : client qui a ecrit le message
+#TODO clients_connectés : liste qui contient les clients connectés
+#TODO Rooms : azerty
+'''
 
 def Client_Download(msg_recu,client, clients_connectes, Rooms):
     filename=""
@@ -264,6 +449,12 @@ def Thread_File_Sender (filename,filesize,client, client_connectes):
     print()
     client_connectes.append(client)
     
+
+
+#! Dictionnaire utilisé dans la fonction principale de ce fichier à savoir Check_client_functions (ci-dessous)
+#! Il est utilisé comme un switch case
+#! A gauche des ":" c'est la key (que l'on a défini tout en haut du fichier)
+#! A droite des ":" c'est la value qui est ici la fonction qui sera executé en fonction de la key que l'on saisi
 
 options = {
         EXIT_CLIENT : Client_Exit,

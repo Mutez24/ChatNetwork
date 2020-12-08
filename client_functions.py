@@ -18,36 +18,40 @@ import time
 # Import threading libraries
 import threading
 
+# Import needed files
 from RoomClass import *
 
 #! Commandes clients
-EXIT_CLIENT = "#Exit" #Command used by clients to leave
-HELP_CLIENT = "#Help" #Command used by clients to get help
-LISTU_CLIENT = "#ListU" #Command used by clients to get the list of other connected users
-PRIVATE_CLIENT = "#Private" #Command used by clients to chat privately with one another
-PUBLIC_CLIENT = "#Public" #Command used by clients to get back to public chat after using private chat
-CREATE_CHATROOM_CLIENT= "#CreateRoom" #Command used by clients to create group chats with multiple users
-JOIN_CHATROOM_CLIENT="#JoinRoom" #Join one room which the client belongs to
-LIST_CHATROOM_CLIENT="#ListRoom" #List all rooms the client belongs to
-ADD_CLIENT_CHATROOM_CLIENT="#AddRoom" #Add a client to a room
-KICK_CLIENT_CHATROOM_CLIENT="#KickRoom" #Kick a client to a room
-LEAVE_CLIENT_CHATROOM_CLIENT="#LeaveRoom" #Client wants to leave the room
-LIST_CLIENT_CHATROOM_CLIENT="#ListClientRoom" #List of client in a room
-UPLOAD_CLIENT = "#TrfU" #Command used by clients to upload files
-RING_USER = "#Ring" #Command used by clients to ring a user if he's logged in
-LISTF_CLIENT = "#ListF" #Command used by clients to see all files
-DOWNLOAD_CLIENT = "#TrfD" #Command used by clients to upload files
+EXIT_CLIENT = "#Exit" #Commande utilisée par les clients pour quitter son terminal
+HELP_CLIENT = "#Help" #Commande utilisée par les clients pour obtenir de l'aide
+LISTU_CLIENT = "#ListU" #Commande utilisée par les clients pour obtenir la liste des autres utilisateurs connectés
+PRIVATE_CLIENT = "#Private" #Commande utilisée par les clients pour discuter en privé les uns avec les autres
+PUBLIC_CLIENT = "#Public" #Commande utilisée par les clients pour revenir au chat public après avoir utilisé le chat privé ou être entré dans une room
+UPLOAD_CLIENT = "#TrfU" #Commande utilisée par les clients pour télécharger des fichiers
+RING_USER = "#Ring" #Commande utilisée par les clients pour ring un utilisateur s'il est connecté
+LISTF_CLIENT = "#ListF" #Commande utilisée par les clients pour voir tous les fichiers
+DOWNLOAD_CLIENT = "#TrfD" #Commande utilisée par les clients pour télécharger des fichiers
+
+CREATE_CHATROOM_CLIENT= "#CreateRoom" #Commande utilisée par les clients pour créer des discussions de groupe avec plusieurs utilisateurs
+JOIN_CHATROOM_CLIENT="#JoinRoom" #Commande utilisée par les clients pour rejoindre une room à laquelle ils appartiennent
+LIST_CHATROOM_CLIENT="#ListRoom" #Commande utilisée par les clients pour lister toutes les pièces auxquelles ils appartiennent
+ADD_CLIENT_CHATROOM_CLIENT="#AddRoom" #Commande utilisée par les clients pour ajouter un utilisateur à une room
+KICK_CLIENT_CHATROOM_CLIENT="#KickRoom" #Commande utilisée par les clients pour kick un utilisateur d'une room
+LEAVE_CLIENT_CHATROOM_CLIENT="#LeaveRoom" #Commande utilisée par les clients pour quitter une room
+LIST_CLIENT_CHATROOM_CLIENT="#ListClientRoom" #Commande utilisée par les clients pour lister les clients d'une room
+
+#! Hints :
 #TODO TOUJOURS mettre les 4 mêmes paramètres dans chaque fonction même si on ne se sert pas des 4
 #TODO En effet les appels de fonctions sont définis par défaut avec ces paramètres dans la fonction Check_client_functions
 
 
 '''
-#* Fonction qui permet a un client de fermer sa connexion au serveur
+#* Fonction qui permet a un client de shutdown son terminal (de quitter l'application)
 
-#TODO msg_recu : message ecrit par un client
-#TODO client : client qui a ecrit le message
-#TODO clients_connectés : liste qui contient les clients connectés
-#TODO Rooms : azerty
+#? msg_recu : message ecrit par un client
+#? client : client qui a ecrit le message
+#? clients_connectés : liste qui contient les clients connectés
+#? Rooms : liste de toutes les room
 '''
 
 def Client_Exit (msg_recu,client, clients_connectes, Rooms):
@@ -196,6 +200,13 @@ def Client_Public(msg_recu,client, clients_connectes, Rooms):
 #TODO Rooms : azerty
 '''
 
+'''
+#* Fonction permettant 
+
+#? msg_recu : input du client
+#? clients_connectes : liste des clients connectés
+#? Rooms : liste de toutes les room
+'''
 def List_Room(msg_recu, client, clients_connectes, Rooms):
     List_Room_RF(msg_recu, client, clients_connectes, Rooms)
 
@@ -426,6 +437,14 @@ def Client_Download(msg_recu,client, clients_connectes, Rooms):
             if(recu == "OK DOWNLOAD"): client_ready=True
         threading.Thread(target=Thread_File_Sender, args=(filename,filesize,client,clients_connectes,)).start()
 
+
+'''
+#* Fonction permettant 
+
+#? msg_recu : input du client
+#? clients_connectes : liste des clients connectés
+#? Rooms : liste de toutes les room
+'''
 def Thread_File_Sender (filename,filesize,client, client_connectes):
     
     #start sending file
@@ -448,7 +467,6 @@ def Thread_File_Sender (filename,filesize,client, client_connectes):
 			# update the progress bar
     print()
     client_connectes.append(client)
-    
 
 
 #! Dictionnaire utilisé dans la fonction principale de ce fichier à savoir Check_client_functions (ci-dessous)
@@ -475,6 +493,14 @@ options = {
         DOWNLOAD_CLIENT : Client_Download
     }
 
+
+'''
+#* Fonction principale redirigeant vers la fonction adéquat de ce fichier par rapport à l'input client
+
+#? msg_recu : input du client
+#? clients_connectes : liste des clients connectés
+#? Rooms : liste de toutes les room
+'''
 def Check_client_functions(msg_recu, client, clients_connectes,  Rooms):
     commande = msg_recu.split(' ')[0]
 

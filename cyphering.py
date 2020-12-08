@@ -1,14 +1,14 @@
 # Import sockets libraries
 import socket
 
+
 '''
 #* Fonction qui permet de crypter un string à partir d'une clé
 #* Retourne le string crypté
 
-#TODO to_encrypt : string à crypter
-#TODO key : clé de cryptage
+#? to_encrypt : string à crypter
+#? key : clé de cryptage
 '''
-
 def PolyEncryption(to_encrypt, key):
     encrypted = ""
     size=len(key)
@@ -18,15 +18,15 @@ def PolyEncryption(to_encrypt, key):
             new_ascii=32 + new_ascii%127
         encrypted+=(chr(new_ascii))
     return encrypted
-        
+
+
 '''
 #* Fonction qui permet de décrypter un string à partir d'une clé
 #* Retourne le string décrypté
 
-#TODO to_decrypt : string à décrypter
-#TODO key : clé de decryptage
+#? to_decrypt : string à décrypter
+#? key : clé de decryptage
 '''
-
 def PolyDecryption(to_decrypt, key):
     decrypted = ""
     size=len(key)
@@ -38,16 +38,16 @@ def PolyDecryption(to_decrypt, key):
         decrypted+=(chr(old_ascii))
     return decrypted     
 
+
 '''
 #* Fonction qui permet de gérer les envoie de messages (remplace la fonction socket.send de la librairie socket)
 #* Permet de faire l'encryption du message et la vérification de taille du message
 
-#TODO msg_encode : message à envoyer
-#TODO key : clé de cryptage
-#TODO socket : socket à qui on envoie le message
-#TODO force : peremt de forcer l'envoie (quand la taille du string est trop grande (+ 280 caractère))
+#? msg_encode : message à envoyer
+#? key : clé de cryptage
+#? socket : socket à qui on envoie le message
+#? force : peremt de forcer l'envoie (quand la taille du string est trop grande (+ 280 caractère))
 '''
-
 def Send_Message(msg_encode, key, socket, force= False):
     #Si le message est trop long on retourne un message d'erreur
     if (len(msg_encode)>280 and not force):
@@ -62,15 +62,15 @@ def Send_Message(msg_encode, key, socket, force= False):
         # Une fois le message crypter, on l'encode pour l'envoyer avec la fonction .send
         msg_to_send = msg_crypter_join.encode()
         socket.send(msg_to_send)
-    
+
+
 '''
 #* Fonction qui permet de gérer les messages recu (remplace la fonction socket.recv de la librairie socket)
 #* Retourne le message recu (en byte)
 
-#TODO key : clé de cryptage
-#TODO socket : socket qui recoit des messages
+#? key : clé de cryptage
+#? socket : socket qui recoit des messages
 '''
-
 def Receive_Message(key, socket):
     # On recoit le message
     msg = socket.recv(2000)

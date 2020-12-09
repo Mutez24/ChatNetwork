@@ -8,7 +8,7 @@ from ClientClass import *
 key = "salut"
 
 '''
-#* Permet de créer une room à partir d'un nom de room et de au moins 2 noms de clients.
+#* Fonction permettant de créer une room à partir d'un nom de room et de au moins 2 noms de clients.
 
 #? msg_recu : input ecrit par un client
 #? client : client qui a ecrit le message
@@ -63,6 +63,7 @@ def Create_Room_RF(msg_recu, client, clients_connectes, Rooms):
     else:
         Send_Message("Please write the correct attributes after the command. \nPlease note that to create a room, you need at least 3 users including you.\n", key, client.socket)
 
+
 ''' fonction non utilisé à ce jour mais aurait pu l'être avec Create_Room_Server dans server.py si le tout avait été plus fonctionnel
 def Create_Room2_RF(msg_recu, client, clients_connectes, Rooms):
     name_clients=[]
@@ -90,8 +91,9 @@ def Create_Room2_RF(msg_recu, client, clients_connectes, Rooms):
         Send_Message(b"Please precise a room name after the #CreateRoom command.",key,client.socket)                   
 '''  
 
+
 '''
-#* Permet à un membre d'une room de rejoindre une room à laquelle il appartient.
+#* Fonction permettant à un membre d'une room de rejoindre une room à laquelle il appartient.
 
 #? msg_recu : input ecrit par un client
 #? client : client qui a ecrit le message
@@ -125,7 +127,7 @@ def Join_Room_RF(msg_recu, client, clients_connectes, Rooms):
 
 
 '''
-#* Permet à l'admin du groupe d'ajouter un client à la room.
+#* Fonction permettant à l'admin du groupe d'ajouter un client à la room.
 
 #? msg_recu : input ecrit par un client
 #? client : client qui a ecrit le message
@@ -167,8 +169,9 @@ def Add_Room_RF(msg_recu, client, clients_connectes, Rooms):
     else:
         Send_Message("Please write the correct attributes after the command.\n", key, client.socket)
 
+
 '''
-#* Permet à l'admin du groupe d'enlever un client de la room.
+#* Fonction permettant à l'admin du groupe d'enlever un client de la room.
 
 #? msg_recu : input ecrit par un client
 #? client : client qui a ecrit le message
@@ -220,8 +223,9 @@ def Kick_Room_RF(msg_recu, client, clients_connectes, Rooms):
     else:
         Send_Message("Please write the correct attributes after the command.\n", key, client.socket)
 
+
 '''
-#* Permet de supprimer le client de la room mentionnée.
+#* Fonction permettant de supprimer le client de la room mentionnée.
 
 #? msg_recu : input ecrit par un client
 #? client : client qui a ecrit le message
@@ -265,8 +269,9 @@ def Leave_Room_RF(msg_recu, client, clients_connectes, Rooms):
     else:
         raise Exception 
 
+
 '''
-#* Permet de lister tous les clients d'une room à un client appartenant à cette room.
+#* Fonction permettant de lister tous les clients d'une room à un client appartenant à cette room.
 
 #? msg_recu : input ecrit par un client
 #? client : client qui a ecrit le message
@@ -301,8 +306,9 @@ def List_Client_Room_RF(msg_recu, client, clients_connectes, Rooms):
     else:
         raise Exception
 
+
 '''
-#* Permet d'afficher toutes les rooms à laquelle le client appartient.
+#* Fonction permettant d'afficher toutes les rooms à laquelle le client appartient.
 
 #? msg_recu : input ecrit par un client
 #? client : client qui a ecrit le message

@@ -186,6 +186,7 @@ def main():
 			#! S'il venait d'un client, il y aurait le préfixe <username> et un chevron
 			if (msg_recu == "Server shutdown" or msg_recu == "You were kicked by server"): 
 				# On doit fermer notre client, on affiche donc le msg et on break du while principal
+				print()
 				print(msg_recu)
 				break
 			if (msg_recu.split(' ')[0] == "#TrfD"): 

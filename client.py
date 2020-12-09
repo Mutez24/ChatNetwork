@@ -170,9 +170,16 @@ def main():
 							recu = Receive_Message(key, connexion_avec_serveur)
 						except:
 							pass
-						if(recu == "OK UPLOAD"): serveur_ready=True # Serveur prêt
-					# Quand le serveur est prêt, on lance le thread d'envoi de fichier
-					threading.Thread(target=send_file, args=(filename,filesize,connexion_avec_serveur,)).start()
+						if(recu == "OK UPLOAD"): 
+							serveur_ready=True # Serveur prêt
+						if(recu.split(" ",1)[0] == "File"):
+							#File too big
+							break
+					if(serveur_ready):	
+						# Quand le serveur est prêt, on lance le thread d'envoi de fichier
+						threading.Thread(target=send_file, args=(filename,filesize,connexion_avec_serveur,)).start()
+					else:
+						print(recu)
 			else:
 				# Si l'on ne souhaite pas faire d'Upload de fichier, on peut envoyer le message tel quel
 				Send_Message(msg_a_envoyer, key, connexion_avec_serveur)		

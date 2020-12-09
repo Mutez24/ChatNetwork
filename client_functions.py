@@ -376,12 +376,15 @@ def Client_Ring(msg_recu,client, clients_connectes, Rooms):
 #? Rooms : liste de toutes les room
 '''
 def Client_ListF(msg_recu,client, clients_connectes, Rooms):
-    list_files = os.listdir("Files_Uploaded")
-    msg_a_envoyer = "Liste des fichier : \n"
-    for fichier in list_files:
-        msg_a_envoyer+= "{} \n".format(fichier)
-    msg_a_envoyer = msg_a_envoyer
-    Send_Message(msg_a_envoyer,key,client.socket, force=True)
+    if(msg_recu == "#ListF"):
+        list_files = os.listdir("Files_Uploaded")
+        msg_a_envoyer = "Liste des fichier : \n"
+        for fichier in list_files:
+            msg_a_envoyer+= "{} \n".format(fichier)
+        msg_a_envoyer = msg_a_envoyer
+        Send_Message(msg_a_envoyer,key,client.socket, force=True)
+    else:
+        raise Exception
 
 
 '''

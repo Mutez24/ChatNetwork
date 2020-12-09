@@ -178,11 +178,14 @@ def Server_Private(input_server, clients_connectes,connexion_principale,clients_
 #? la connexion principale (la socket du server)
 '''
 def Server_ListF(input_server, clients_connectes,connexion_principale,clients_awaiting_connection):
-    list_files = os.listdir("Files") # Folder où se trouve les files
-    msg_a_print = "\n Liste des fichiers : \n "
-    for fichier in list_files:
-        msg_a_print+= "{} \n".format(fichier)
-    print(msg_a_print)
+    if(input_server == "#ListF"):
+        list_files = os.listdir("Files_Uploaded") # Folder où se trouve les files
+        msg_a_print = "\n Liste des fichiers : \n "
+        for fichier in list_files:
+            msg_a_print+= "{} \n".format(fichier)
+        print(msg_a_print)
+    else:
+        raise Exception
 
 
 #! Dictionnaire utilisé dans la fonction principale de ce fichier à savoir Check_server_functions (ci-dessous)

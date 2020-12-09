@@ -290,7 +290,7 @@ def List_Client_Room(msg_recu, client, clients_connectes, Rooms):
 
 '''
 #* Fonction qui permet à un client d'upload un fichier sur le server, il sera sauvegardé dans 
-#* le dossier Files_Uploaded
+#* le dossier Files_Uploaded. Une taille maximale est défini par MAX_SIZE_FILE
 
 #? msg_recu : input ecrit par un client
 #? client : client qui a ecrit le message

@@ -131,12 +131,14 @@ def login_register(connexion_avec_client, infos_connexion,conn):
                 while(unconnected):
                     try:
                         username = " "
-                        while(' ' in username):
+                        while(' ' in username or Room.Check_Username_Client(username,Rooms)):
                             msg = "Username :"
                             Send_Message(msg, key, connexion_avec_client)
                             username = Receive_Message(key, connexion_avec_client).decode()
                             if (' ' in username):
                                 Send_Message("Username must not contain spaces\n", key, connexion_avec_client)
+                            if (Room.Check_Username_Client(username,Rooms)):
+                                Send_Message("Username is the same as an existed room on the server so you have to choose another one\n", key, connexion_avec_client)
                         msg = "Password :"
                         Send_Message(msg, key, connexion_avec_client)
                         password = Receive_Message(key, connexion_avec_client).decode()

@@ -28,7 +28,7 @@ def Create_Room_RF(msg_recu, client, clients_connectes, Rooms):
         #On vérifie que le créateur de la room ne rentre pas son propre nom dans la liste des clients à ajouter
         if(not client.username in name_clients_typed):
             #On vérifie que le nom de la room n'est pas déjà emprunté par un client.
-            if(Room.Check_Name_With_Clients(room_name, clients_connectes)):
+            if(Room.Check_Name_With_Clients(room_name)):
                 #On vérifie que le nom de la room n'est pas déjà emprunté par une autre room.
                 if(not Room.Check_Name(room_name,Rooms)):
                     #On récupère les objets clients à partir de leur username.
@@ -37,7 +37,7 @@ def Create_Room_RF(msg_recu, client, clients_connectes, Rooms):
                     #cela signifie que un ou plusieurs noms de client ne correspondait 
                     #à aucun client existant ou connecté
                     if(len(clients_typed)!=len(name_clients_typed)):
-                        Send_Message("One or more client's name you typed don't match any connected client.\n", key, client.socket)
+                        Send_Message("One or more client's name you typed don't match any connected client or you typed the same client's name twice or more.\n", key, client.socket)
                     #On vérifie qu'on a au moins 2 clients valides pour créer la room.
                     if(len(clients_typed)>=2):
                         new_room=Room(room_name,client) #On crée l'objet room

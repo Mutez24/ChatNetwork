@@ -1,3 +1,6 @@
+# Import librairies DB
+import sqlite3
+
 class Room:
 
     '''
@@ -33,6 +36,23 @@ class Room:
 
 
     '''
+    #* Méthode qui vérifie si le username n'est pas le nom d'un room existante.
+    #* Si c'est le cas, alors la fonction renvoie False.
+    #* Sinon, elle renvoie True.
+
+    #? username : username d'un client essayant de créer son compte
+    #? Rooms : liste de toutes les room
+    '''
+    @staticmethod
+    def Check_Username_Client(username, Rooms):
+        exist=False
+        for room in Rooms:
+            if room.name == username:
+                exist=True
+        return exist
+
+
+    '''
     #* Méthode qui vérifie si le nom d'une chat room n'est pas le même que le nom d'un client.
     #* Si le nom room_name est déjà utilisé par un utilisateur, alors la fonction renvoie False.
     #* Sinon, elle renvoie True.
@@ -47,10 +67,14 @@ class Room:
     #? clients_connectes : liste des clients connectés
     '''
     @staticmethod
-    def Check_Name_With_Clients(room_name, clients_connectes):
+    def Check_Name_With_Clients(room_name):
+        conn = sqlite3.connect('database_chat.db',check_same_thread=False)
         valid=True
-        for client in clients_connectes:
-            if client.username==room_name:
+        cur = conn.cursor()
+        cur.execute("SELECT USERNAME FROM user")
+        clients_name = cur.fetchall()
+        for row in clients_name:
+            if row[0]==room_name:
                 valid=False
                 break
         return valid

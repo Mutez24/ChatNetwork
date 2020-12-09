@@ -243,9 +243,10 @@ def Leave_Room_RF(msg_recu, client, clients_connectes, Rooms):
             #On vérifie que le client appartient bien à la room.
             if room.Check_Client(client.username):
                 room.clients.remove(client)
+                client.room = "public"
                 msg_leaver="You left the chat room '{}'.\n".format(room.name)
+                msg_leaver+="You are now back at the public chat.\n"
                 Send_Message(msg_leaver, key, client.socket)
-
                 msg="'{}' Left the Chat Room '{}'.\n".format(client.username, room.name)
                 #Si le nombre de clients appartenant à la room descend en dessous de 2,
                 #alors la room n'a plus de raison d'exister et on la supprime.

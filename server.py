@@ -83,7 +83,7 @@ def login_register(connexion_avec_client, infos_connexion,conn):
                 # Empêche de répondre autre chose que 1 et 2
                 msg = "Bienvenue, appuyez sur 1 pour vous connecter ou 2 pour creer un compte"
                 Send_Message(msg, key, connexion_avec_client)
-                response = Receive_Message(key, connexion_avec_client).decode()
+                response = Receive_Message(key, connexion_avec_client)
             
 
             if(response == "1"):
@@ -94,7 +94,7 @@ def login_register(connexion_avec_client, infos_connexion,conn):
                     msg = "Username :"
                     # Demande de username
                     Send_Message(msg, key, connexion_avec_client)
-                    username = Receive_Message(key, connexion_avec_client).decode()
+                    username = Receive_Message(key, connexion_avec_client)
                     # Check si le client est déjà connecté
                     for client in clients_connectes:
                         if (client.username == username):
@@ -108,7 +108,7 @@ def login_register(connexion_avec_client, infos_connexion,conn):
                         break
                     msg = "Password :"
                     Send_Message(msg, key, connexion_avec_client)
-                    password = Receive_Message(key, connexion_avec_client).decode()
+                    password = Receive_Message(key, connexion_avec_client)
                     # Check du password
                     cursor = conn.execute("SELECT * FROM user WHERE USERNAME = '{}' AND PASSWORD = '{}'".format(username,password))
                     conn.commit()
@@ -134,14 +134,14 @@ def login_register(connexion_avec_client, infos_connexion,conn):
                         while(' ' in username or Room.Check_Username_Client(username,Rooms)):
                             msg = "Username :"
                             Send_Message(msg, key, connexion_avec_client)
-                            username = Receive_Message(key, connexion_avec_client).decode()
+                            username = Receive_Message(key, connexion_avec_client)
                             if (' ' in username):
                                 Send_Message("Username must not contain spaces\n", key, connexion_avec_client)
                             if (Room.Check_Username_Client(username,Rooms)):
                                 Send_Message("Username is the same as an existed room on the server so you have to choose another one\n", key, connexion_avec_client)
                         msg = "Password :"
                         Send_Message(msg, key, connexion_avec_client)
-                        password = Receive_Message(key, connexion_avec_client).decode()
+                        password = Receive_Message(key, connexion_avec_client)
                         conn.execute("INSERT INTO user (USERNAME,PASSWORD) VALUES ('{}','{}')".format(username,password))
                         conn.commit()
                         unconnected = False
@@ -180,13 +180,13 @@ def Create_Room_Server(client, room_name):
         while(choice!="1" and choice !="2"):
             msg="\nType 1 to add a new client or 2 to finish the creation: "
             Send_Message(msg, key, client.socket)
-            choice= Receive_Message(key, client.socket).decode()
+            choice= Receive_Message(key, client.socket)
         if(choice=="1"):
             client_connected_existed=False
             client_functions.Check_client_functions("#ListU", client, clients_connectes,  Rooms)
             Send_Message("Please, write one of the name mentionned above: ", key, client.socket)
             #client.socket.send(b"Please, write one of the name mentionned above: ")
-            client_typed= Receive_Message(key, client.socket).decode()
+            client_typed= Receive_Message(key, client.socket)
             for other_client in clients_connectes:
                 if (other_client.username == client_typed and (other_client not in new_room.clients)):
                     new_room.clients.append(other_client)
@@ -211,7 +211,7 @@ def Create_Room_Server(client, room_name):
                 msg_exit+="If you want to exit this process, type : 'exit'.\n"
                 msg_exit+="Otherwise, press any other key and then enter.\n"
                 Send_Message(msg_exit, key, client.socket)
-                choice= Receive_Message(key, client.socket).decode()
+                choice= Receive_Message(key, client.socket)
                 if(choice=="exit"):
                     msg_exit="Your room wasn't created, you are now back in the chat.\n"
                     Send_Message(msg_exit, key, client.socket)
@@ -299,8 +299,6 @@ def main():
                     clients_connectes.remove(client) #On le retire des clients connectés
                     continue #On passe au client suivant
                 
-                # Peut planter si le message contient des caractères spéciaux
-                msg_recu = msg_recu.decode()
                 
                 #! Check client functions
                 if(msg_recu[0] == "#"):

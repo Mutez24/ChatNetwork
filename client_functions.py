@@ -415,7 +415,7 @@ def Client_Download(msg_recu,client, clients_connectes, Rooms):
         while(not client_ready):
             # On attend que le client soit prêt à recevoir le fichier
             try:
-                recu = Receive_Message(key, client.socket).decode()
+                recu = Receive_Message(key, client.socket)
             except:
                 pass
             if(recu == "OK DOWNLOAD"): client_ready=True
@@ -447,7 +447,7 @@ def Thread_File_Sender (filename,filesize,client, client_connectes):
             sum_bytes+= len(bytes_read)
             percent = (int) (sum_bytes/filesize)*100
             print("", end=f"\r {filename} envoyé à '{client.username}' : {percent} %")
-            client.socket.sendall(bytes_read)
+            client.socket.send(bytes_read)
             
 			
     print()

@@ -48,13 +48,13 @@ def send_file(filename, filesize, connexion_avec_serveur):
 			if not bytes_read:
 				# Transfert des données terminés
 				break
-			# On utilise sendall pour assurer l'envoi dans des réseaux chargés
+			
 			sum_bytes+= len(bytes_read)
 			percent = (int) (sum_bytes/filesize)*100
 			print("", end=f"\r {filename} envoyé : {percent} %")
-			connexion_avec_serveur.sendall(bytes_read)
+			connexion_avec_serveur.send(bytes_read)
 			# Envoi et mise à jour du pourcentage
-			print()
+		print()
 
 
 '''
@@ -70,7 +70,6 @@ def Check_file_size (msg_a_envoyer):
 		filename = msg_a_envoyer.split(' ',1)[1]
 		filesize = os.path.getsize(filename)
 		msg_a_envoyer = "#TrfU {}<>{}".format(filename,filesize)
-		msg_a_envoyer = msg_a_envoyer.encode()
 	except:
 		print("Error with your file")
 		
@@ -168,7 +167,7 @@ def main():
 					# On attend que le serveur soit prêt
 					while(not serveur_ready):
 						try:
-							recu = Receive_Message(key, connexion_avec_serveur).decode()
+							recu = Receive_Message(key, connexion_avec_serveur)
 						except:
 							pass
 						if(recu == "OK UPLOAD"): serveur_ready=True # Serveur prêt
@@ -177,10 +176,10 @@ def main():
 			else:
 				# Si l'on ne souhaite pas faire d'Upload de fichier, on peut envoyer le message tel quel
 				Send_Message(msg_a_envoyer, key, connexion_avec_serveur)		
-				#connexion_avec_serveur.send(msg_a_envoyer)
+				
 				
 		try:	
-			msg_recu = Receive_Message(key, connexion_avec_serveur).decode()
+			msg_recu = Receive_Message(key, connexion_avec_serveur)
 
 			#! Message envoyés par le serveur
 			#! Un msg ayant cette forme exacte provient forcément du server

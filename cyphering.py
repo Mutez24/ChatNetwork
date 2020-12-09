@@ -66,7 +66,7 @@ def Send_Message(msg_encode, key, socket, force= False):
 
 '''
 #* Fonction qui permet de gérer les messages recu (remplace la fonction socket.recv de la librairie socket)
-#* Retourne le message recu (en byte)
+#* Retourne le message recu (en clair)
 
 #? key : clé de cryptage
 #? socket : socket qui recoit des messages
@@ -80,6 +80,4 @@ def Receive_Message(key, socket):
     for i in range(len(msg_to_decrypt_split)):
         msg_to_decrypt_split[i]=PolyDecryption(msg_to_decrypt_split[i],key)
     msg_decrypter_join = "\n".join(msg_to_decrypt_split)
-    # On encode le message avant de le return pour repecter le format
-    final_msg = msg_decrypter_join.encode()
-    return final_msg
+    return msg_decrypter_join

@@ -90,16 +90,19 @@ def Server_Kill(input_server, clients_connectes,connexion_principale,clients_awa
 #? la connexion principale (la socket du server)
 '''
 def Server_Help(input_server, clients_connectes,connexion_principale,clients_awaiting_connection):
-    msg = "You can find a list of available commands below : \n \n \
-    #Help (list command) \n \
-    #Exit (server shutdown) \n \
-    #Kill <user> (kick <user> from server) \n \
-    #ListU (list of users in a server) \n \
-    #ListF (list of files in a server) \n \
-    #Private <user> <message> (private chat with another user) \n \
-    #Alert <msg> (send msg to all users)"
+    if(input_server == "#Help"):
+        msg = "You can find a list of available commands below : \n \n \
+        #Help (list command) \n \
+        #Exit (server shutdown) \n \
+        #Kill <user> (kick <user> from server) \n \
+        #ListU (list of users in a server) \n \
+        #ListF (list of files in a server) \n \
+        #Private <user> <message> (private chat with another user) \n \
+        #Alert <msg> (send msg to all users)"
 
-    print(msg)
+        print(msg)
+    else:
+        raise Exception
 
 
 '''

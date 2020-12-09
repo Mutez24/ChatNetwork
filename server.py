@@ -327,6 +327,7 @@ def main():
                                 if(client != receveur_client):
                                     msg_a_envoyer = "Room '{}': '{}' > {}".format(room.name,client.username,msg_recu)
                                     Send_Message(msg_a_envoyer, key, receveur_client.socket)
+                        print("{} @{}:{} | '{}' to '{}' > {} \n".format(datetime.now(), client.IP, client.port, client.username, room.name, msg_recu)) #Affichage côté serveur
                             
                 else:                                               
                     for receveur_client in clients_connectes:

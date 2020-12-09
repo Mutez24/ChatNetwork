@@ -112,9 +112,14 @@ def Join_Room_RF(msg_recu, client, clients_connectes, Rooms):
                 #On modifie l'attribut room de Client pour que désormais chaque message qu'il envoie
                 #soit reçu par chaque membre du groupe
                 client.room=room.name    
-                msg="You are now in the room {}.\n".format(room_name)
+                msg="You are now in the room '{}'.\n".format(room_name)
                 msg+="Every message you send can only be seen by members of this room.\n"
                 Send_Message(msg, key, client.socket, force=True)
+                for other_client in room.clients:
+                    if other_client!=client:
+                        msg="'{}' join the room '{}'.".format(client.username,room_name)
+                        Send_Message(msg, key, other_client.socket)
+                print("{} @{}:{} | '{}' join the room '{}' \n".format(datetime.now(), client.IP, client.port, client.username, room.name)) #Affichage côté serveur
             else:
                 Send_Message("You don't belong to this room.\n", key, client.socket)
         else:
@@ -158,6 +163,7 @@ def Add_Room_RF(msg_recu, client, clients_connectes, Rooms):
                         for other_client in room.clients:
                             if other_client!=client_to_add:
                                 Send_Message(msg_to_other, key, other_client.socket)
+                        print("{} @{}:{} | '{}' added '{}' to the room '{}' \n".format(datetime.now(), client.IP, client.port, client.username, name_client_to_add, room_name)) #Affichage côté serveur
                     else:
                         Send_Message("The client you want to add doesn't exist or isn't connected.\n", key, client.socket)
                 else: 
@@ -183,6 +189,7 @@ def Kick_Room_RF(msg_recu, client, clients_connectes, Rooms):
         msg_recu = msg_recu.split(' ')
         room_name = msg_recu[1]
         name_client_to_kick = msg_recu[2]
+        
         #On vérifie que le nom de la room est valide cad existant.
         if Room.Check_Name(room_name, Rooms):
             room=Room.Get_Room(room_name, Rooms)
@@ -190,30 +197,37 @@ def Kick_Room_RF(msg_recu, client, clients_connectes, Rooms):
             if room.Check_Client(client.username):
                 #On vérifie que le client est bien l'admin de la room.
                 if (client == room.admin):
-                    #On vérifie que le client à kick est bien dans la room.
-                    if room.Check_Client(name_client_to_kick):
-                        client_to_kick=room.Get_Client(name_client_to_kick)
-                        room.clients.remove(client_to_kick)
-                        client_to_kick.room = "public"
-                        msg_to_kicked_client="You were kicked from the room '{}' by '{}'.\n".format(room_name, client.username)
-                        msg_to_kicked_client+="You are now back at the public chat.\n"
-                        Send_Message(msg_to_kicked_client, key, client_to_kick.socket)
+                    #On vérifie que le user a kick n'est pas le client effectuant la commande
+                    if (client.username != name_client_to_kick):
+                        #On vérifie que le client à kick est bien dans la room.
+                        if room.Check_Client(name_client_to_kick):
+                            client_to_kick=room.Get_Client(name_client_to_kick)
+                            room.clients.remove(client_to_kick)
+                            client_to_kick.room = "public"
+                            msg_to_kicked_client="You were kicked from the room '{}' by '{}'.\n".format(room_name, client.username)
+                            msg_to_kicked_client+="You are now back at the public chat.\n"
+                            Send_Message(msg_to_kicked_client, key, client_to_kick.socket)
 
-                        #On notifie tous les autres membres de la suppression.
-                        msg_to_other="'{}' was kicked from the room '{}' by '{}'.\n".format(name_client_to_kick,room_name, client.username)
-                        for other_client in room.clients:
-                            if other_client!=client_to_kick:
-                                Send_Message(msg_to_other, key, other_client.socket)
+                            #On notifie tous les autres membres de la suppression.
+                            msg_to_other="'{}' was kicked from the room '{}' by '{}'.\n".format(name_client_to_kick,room_name, client.username)
+                            for other_client in room.clients:
+                                if other_client!=client_to_kick:
+                                    Send_Message(msg_to_other, key, other_client.socket)
+                            print("{} @{}:{} | '{}' kicked '{}' from the room '{}' \n".format(datetime.now(), client.IP, client.port, client.username, name_client_to_kick, room_name)) #Affichage côté serveur
 
-                        #Si le nombre de clients appartenant à la room descend en dessous de 2,
-                        #alors la room n'a plus de raison d'exister et on la supprime.
-                        if(len(room.clients)<2):
-                            msg="Chat room was dissolved because too few people were remaining (< 2).\n"
-                            for member in room.clients:
-                                Send_Message(msg,key, member.socket)
-                            Rooms.remove(room)
+                            #Si le nombre de clients appartenant à la room descend en dessous de 2,
+                            #alors la room n'a plus de raison d'exister et on la supprime.
+                            if(len(room.clients)<2):
+                                msg="Chat room was dissolved because too few people were remaining (< 2). You will get back to the public chat.\n"
+                                for member in room.clients:
+                                    member.room = "public"
+                                    Send_Message(msg,key, member.socket)
+                                Rooms.remove(room)
+                                print("The room {} has been deleted at {} because too few people were remaining. \n".format(room_name, datetime.now())) #Affichage côté serveur
+                        else:
+                            Send_Message("The client you want to kick doesn't belong to this room.\n", key, client.socket)
                     else:
-                        Send_Message("The client you want to kick doesn't belong to this room.\n", key, client.socket)
+                        Send_Message("You can't kick yourself.\n", key, client.socket)
                 else: 
                     Send_Message("You aren't the admin of this room.\n", key, client.socket)        
             else:
@@ -236,30 +250,39 @@ def Leave_Room_RF(msg_recu, client, clients_connectes, Rooms):
     if(len(msg_recu.split(' ')) > 1):
         msg_recu = msg_recu.split(' ')
         room_name = msg_recu[1]
+        admin=False
 
         #On vérifie que le nom de la room est valide cad existant.
         if Room.Check_Name(room_name, Rooms):
             room=Room.Get_Room(room_name, Rooms)
             #On vérifie que le client appartient bien à la room.
             if room.Check_Client(client.username):
+                if (client == room.admin):
+                    admin=True
                 room.clients.remove(client)
-                client.room = "public"
-                msg_leaver="You left the chat room '{}'.\n".format(room.name)
-                msg_leaver+="You are now back at the public chat.\n"
+                msg_leaver="You left the room '{}' permanently. You will get back to the public chat.\n".format(room.name)
                 Send_Message(msg_leaver, key, client.socket)
-                msg="'{}' Left the Chat Room '{}'.\n".format(client.username, room.name)
+                client.room="public"
+
+                msg="'{}' left the Room '{}' permanently.\n".format(client.username, room.name)
+                for member in room.clients:
+                    Send_Message(msg,key, member.socket)
+                print("{} @{}:{} | '{}' left the room '{}' permanently.\n".format(datetime.now(), client.IP, client.port, client.username, room.name)) #Affichage côté serveur
                 #Si le nombre de clients appartenant à la room descend en dessous de 2,
                 #alors la room n'a plus de raison d'exister et on la supprime.
                 if(len(room.clients)<2):
-                    msg+="Chat room was dissolved because too few people were remaining.\n"
+                    msg="Chat room was dissolved because too few people were remaining (< 2). You will get back to the public chat.\n"
                     for member in room.clients:
+                        member.room = "public"
                         Send_Message(msg,key, member.socket)
                     Rooms.remove(room)
+                    print("The room '{}' has been deleted at {} because too few people were remaining. \n".format(room_name, datetime.now())) #Affichage côté serveur
                 #Si le client qui quitte la room est admin, il faut en élire un nouveau.
-                elif(client==room.admin):
+                elif(admin):
                     room.admin=room.clients[0]
                     msg="You are now the admin of the chat room '{}'.\n".format(room.name)
                     Send_Message(msg,key, room.admin.socket)
+                    print("The admin left the room '{}' at {} so the new admin is '{}' \n".format(room_name, datetime.now(),room.admin.username)) #Affichage côté serveur
                 else:
                     for member in room.clients:
                         Send_Message(msg,key, member.socket)

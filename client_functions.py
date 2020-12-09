@@ -183,8 +183,18 @@ def Client_Public(msg_recu,client, clients_connectes, Rooms):
                 if(other_client.username==client.room):
                     msg="'{}' left the private chat.".format(client.username)
                     Send_Message(msg, key, other_client.socket)
+                    break
+                # Si le user était dans une room on notifie les membres de la room.
+                else: #L'attribut room d'un user ne peut avoir que 3 états : public, le nom d'un autre user, le nom d'une room donc on peut se permettre de mettre un else
+                    room = Room.Get_Room(client.room,Rooms)
+                    for cli in room.clients:
+                        msg="'{}' left the '{}' (room) chat.".format(client.username,room.name)
+                        Send_Message(msg, key, cli.socket)
+                    break
             # On replace le client dans le chat public
             client.room="public"
+            print("{} @{}:{} | '{}' is back on public chat.\n".format(datetime.now(), client.IP, client.port, client.username)) #Affichage côté serveur
+            Send_Message("You are back on the public chat.", key, client.socket)
     else:
         raise Exception
 

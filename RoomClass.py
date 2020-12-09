@@ -10,10 +10,10 @@ class Room:
     #? admin : un client (créateur de la room)
     #? clients : liste de tous les clients de la room
     '''
-    def __init__(self,name, admin, clients=[]):
+    def __init__(self,name, admin):
         self.name = name
         self.admin = admin
-        self.clients = clients
+        self.clients = []
         self.clients.append(admin) 
 
 

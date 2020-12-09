@@ -92,6 +92,22 @@ class Client:
                 break
         return exist
 
+    
+    '''
+    #* Méthode qui check si le client rentré en paramètre n'est pas déjà dans la room
+
+    #? client_name : nom d'un client
+    #? Rooms : liste des rooms existantes
+    '''
+    @staticmethod
+    def Check_Client_Room(client_name, Rooms):
+        exist=False
+        for room in Rooms:
+            for client in room.clients:
+                if (client.username == client_name):
+                    exist = True
+        return exist
+
 
     '''
     #* Méthode qui récupère toutes les informations d'un client à partir de son nom

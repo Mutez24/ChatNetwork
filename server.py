@@ -168,57 +168,7 @@ def login_register(connexion_avec_client, infos_connexion,conn):
 
     except:
         pass
-        
     
-''' fonction non utilisé à ce jour mais aurait pu l'être avec Create_Room2_RF dans romm_functions.py si le tout avait été plus fonctionnel
-def Create_Room_Server(client, room_name):
-    global Rooms
-    new_room=Room(room_name,client)
-    clients_connectes.remove(client)
-    while(True):
-        choice=""
-        while(choice!="1" and choice !="2"):
-            msg="\nType 1 to add a new client or 2 to finish the creation: "
-            Send_Message(msg, key, client.socket)
-            choice= Receive_Message(key, client.socket)
-        if(choice=="1"):
-            client_connected_existed=False
-            client_functions.Check_client_functions("#ListU", client, clients_connectes,  Rooms)
-            Send_Message("Please, write one of the name mentionned above: ", key, client.socket)
-            #client.socket.send(b"Please, write one of the name mentionned above: ")
-            client_typed= Receive_Message(key, client.socket)
-            for other_client in clients_connectes:
-                if (other_client.username == client_typed and (other_client not in new_room.clients)):
-                    new_room.clients.append(other_client)
-                    client_connected_existed = True
-            if(not client_connected_existed):
-                msg_error="\nclient '{}' doesn't exist or is unconnected or is already in your room.\n".format(client_typed)
-                Send_Message(msg_error, key, client.socket)
-        else:
-            if(len(new_room.clients)>=3):
-                Rooms.append(new_room)
-                print("The room '{}' was created successfully at {} by '{}' from @{}:{}\n".format(new_room.name,datetime.now(),client.username,client.IP,client.port))
-                msg_success="Room '{}' created successfully!".format(room_name) 
-                Send_Message(msg_success, key, client.socket)
-                for added_client in new_room.clients:
-                    if(added_client.username!=client.username):
-                        msg_to_added_client="You were added to the room '{}' by '{}'".format(new_room.name, client.username)
-                        Send_Message(msg_to_added_client, key, added_client.socket)     
-                
-                break
-            else:
-                msg_exit="You don't have enough clients in your room (3).\n"
-                msg_exit+="If you want to exit this process, type : 'exit'.\n"
-                msg_exit+="Otherwise, press any other key and then enter.\n"
-                Send_Message(msg_exit, key, client.socket)
-                choice= Receive_Message(key, client.socket)
-                if(choice=="exit"):
-                    msg_exit="Your room wasn't created, you are now back in the chat.\n"
-                    Send_Message(msg_exit, key, client.socket)
-                    break
-    clients_connectes.append(client)
-'''
-
 
 def main():
     #Definition des variables globales afin de pouvoir les modifier

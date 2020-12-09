@@ -21,6 +21,7 @@ def Create_Room_RF(msg_recu, client, clients_connectes, Rooms):
     #nécessite 1 nom de room et 2 noms de users minimum (sans espace dans les noms)
     if(len(msg_recu.split(' '))>3):
         success=False
+        new_room = []
         msg_recu = msg_recu.split(' ')
         room_name = msg_recu[1]
         name_clients_typed = msg_recu[2:len(msg_recu)]
@@ -41,6 +42,8 @@ def Create_Room_RF(msg_recu, client, clients_connectes, Rooms):
                     #On vérifie qu'on a au moins 2 clients valides pour créer la room.
                     if(len(clients_typed)>=2):
                         new_room=Room(room_name,client) #On crée l'objet room
+                        #new_room.clients = []
+                        #new_room.clients.append(client)
                         for member in clients_typed: #On ajoute chaque client en les notifiant d'un message
                             new_room.clients.append(member)
                             msg_to_added_client="You were added to the room '{}' by '{}'.\n".format(new_room.name, client.username)
@@ -62,34 +65,6 @@ def Create_Room_RF(msg_recu, client, clients_connectes, Rooms):
             Send_Message("You can't write your own name in the list of users to add, you will be added automatically as admin.\n", key, client.socket)
     else:
         Send_Message("Please write the correct attributes after the command. \nPlease note that to create a room, you need at least 3 users including you.\n", key, client.socket)
-
-
-''' fonction non utilisé à ce jour mais aurait pu l'être avec Create_Room_Server dans server.py si le tout avait été plus fonctionnel
-def Create_Room2_RF(msg_recu, client, clients_connectes, Rooms):
-    name_clients=[]
-    error_msg=""
-    for cli in clients_connectes:
-        name_clients.append(cli.username)
-    exist=False
-    if(len(msg_recu.split(' '))>1):
-        room_name = msg_recu.lstrip(msg_recu.split(' ')[0])
-        room_name = room_name[1:len(room_name)]
-        
-        if(room_name in name_clients):
-            error_msg=b"The name of the room is already taken by a user, please try again and change the name.\n"
-            exist=True
-        for room in Rooms:
-            if(room_name==room.name):
-                error_msg=b"The name of the room is already taken by another room, please try again and change the name.\n"
-                exist=True
-                break
-        if(not exist):
-            return client, room_name
-        else:
-            Send_Message(error_msg,key,client.socket) 
-    elif(len(msg_recu.split(' '))==1):
-        Send_Message(b"Please precise a room name after the #CreateRoom command.",key,client.socket)                   
-'''  
 
 
 '''
@@ -152,8 +127,8 @@ def Add_Room_RF(msg_recu, client, clients_connectes, Rooms):
             if room.Check_Client(client.username):
                 #On vérifie que le client est bien l'admin de la room.
                 if (client == room.admin):
-                    #on regarde si le client à ajouter est connecté.
-                    if Client.Check_Client_Connected(name_client_to_add, clients_connectes):
+                    #on regarde si le client à ajouter est connecté et s'il n'est pas déjà dans la room
+                    if (Client.Check_Client_Connected(name_client_to_add, clients_connectes) and (not Client.Check_Client_Room(name_client_to_add,Rooms))):
                         client_to_add=Client.Get_Client(name_client_to_add, clients_connectes)
                         room.clients.append(client_to_add)
                         msg_to_added_client="You were added to the room '{}' by '{}'.\n".format(room_name, client.username)
@@ -165,7 +140,7 @@ def Add_Room_RF(msg_recu, client, clients_connectes, Rooms):
                                 Send_Message(msg_to_other, key, other_client.socket)
                         print("{} @{}:{} | '{}' added '{}' to the room '{}' \n".format(datetime.now(), client.IP, client.port, client.username, name_client_to_add, room_name)) #Affichage côté serveur
                     else:
-                        Send_Message("The client you want to add doesn't exist or isn't connected.\n", key, client.socket)
+                        Send_Message("The client you want to add doesn't exist, isn't connected or is already in the room. \n", key, client.socket)
                 else: 
                     Send_Message("You aren't the admin of this room.\n", key, client.socket)        
             else:

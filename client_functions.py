@@ -57,9 +57,9 @@ MAX_SIZE_FILE = 999999999
 def Client_Exit (msg_recu,client, clients_connectes, Rooms):
     if(msg_recu == EXIT_CLIENT):
         # On notifie sur le serveur et tous les clients que le client a quitter le chat
-        msg_client="'{}' left the chat".format(client.username)
+        msg_client="'{}' deconnected".format(client.username)
         # Pour le serveur
-        print("{} @{}:{} | '{}' has left the chat \n".format(datetime.now(), client.IP, client.port, client.username)) 
+        print("{} @{}:{} | '{}' deconnected \n".format(datetime.now(), client.IP, client.port, client.username)) 
         # Pour les clients
         for element in clients_connectes:
             if (client != element):
@@ -88,8 +88,8 @@ def Client_Help (msg_recu,client, clients_connectes, Rooms):
         #Exit (exit chat) \n \
         #ListF (list of files in a server) \n \
         #ListU (list of users in a server) \n \
-        #TrfU <filename if in current directory / absolute path> \n \
-        #TrfD (transfer Download file to a server) \n \
+        #TrfU <filename if in current directory / absolute path> (upload a file on the server)\n \
+        #TrfD <filename> (download a file which is in the folder Files_Uploaded) \n \
         #Private <user> (private chat with another user) \n \
         #Public (back to the public chat) \n \
         #Ring <user> (notification if the user is logged in)\n \
@@ -224,13 +224,6 @@ def List_Room(msg_recu, client, clients_connectes, Rooms):
 '''
 def Create_Room(msg_recu, client, clients_connectes, Rooms):
     Create_Room_RF(msg_recu, client, clients_connectes, Rooms)
-
-
-
-''' fonction non utilisé à ce jour mais aurait pu l'être avec Create_Room2_RF dans romm_functions.py si le tout avait été plus fonctionnel
-def Create_Room2(msg_recu, client, clients_connectes, Rooms):
-    Create_Room2_RF(msg_recu, client, clients_connectes, Rooms)                
-'''
 
 
 '''
@@ -392,12 +385,15 @@ def Client_Ring(msg_recu,client, clients_connectes, Rooms):
 '''
 def Client_ListF(msg_recu,client, clients_connectes, Rooms):
     if(msg_recu == "#ListF"):
-        list_files = os.listdir("Files_Uploaded")
-        msg_a_envoyer = "\n Liste des fichier : \n \n"
-        for fichier in list_files:
-            msg_a_envoyer+= "{} \n".format(fichier)
-        msg_a_envoyer = msg_a_envoyer
-        Send_Message(msg_a_envoyer,key,client.socket, force=True)
+        try:
+            list_files = os.listdir("Files_Uploaded")
+            msg_a_envoyer = "\n Liste des fichier : \n \n"
+            for fichier in list_files:
+                msg_a_envoyer+= "{} \n".format(fichier)
+            msg_a_envoyer = msg_a_envoyer
+            Send_Message(msg_a_envoyer,key,client.socket, force=True)
+        except:
+            Send_Message("No file found",key,client.socket, force=True)
     else:
         raise Exception
 

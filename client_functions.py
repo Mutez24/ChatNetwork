@@ -92,13 +92,13 @@ def Client_Help (msg_recu,client, clients_connectes, Rooms):
         #Private <user> (private chat with another user) \n \
         #Public (back to the public chat) \n \
         #Ring <user> (notification if the user is logged in)\n \
-        #CreateRoom <room name> <user1> <user2> ... (create private chat room with multiple clients) \n \
-        #JoinRoom <room name> (Join a room the client was added to)\n \
+        #CreateRoom <room_name> <user1> <user2> ... (create private chat room with multiple clients. Please note that your 'room_name' must not contain spaces) \n \
+        #JoinRoom <room_name> (Join a room the client was added to)\n \
         #ListRoom (List all rooms the client was added to)\n \
-        #AddRoom <room name> <username>  (Add a client to room)\n \
-        #KickRoom <room name> <username>  (Kick a client from room)\n \
-        #LeaveRoom <room name> (Allow a client to leave a room)\n \
-        #ListClientRoom <room name> (Allow a client to see the members of the room)\n"
+        #AddRoom <room_name> <username>  (Add a client to room)\n \
+        #KickRoom <room_name> <username>  (Kick a client from room)\n \
+        #LeaveRoom <room_name> (Allow a client to leave a room)\n \
+        #ListClientRoom <room_name> (Allow a client to see the members of the room)\n"
 
         # On envoie le message au client
         Send_Message(msg, key, client.socket, force=True)

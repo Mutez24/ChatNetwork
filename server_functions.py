@@ -33,6 +33,7 @@ LISTF_SERVER = "#ListF" #Commande utilisée par le serveur pour vérifier tous l
 #? la connexion principale (la socket du server)
 '''
 def Server_Exit(input_server, clients_connectes,connexion_principale,clients_awaiting_connection):
+    if(input_server == "#Exit"):
         print("Server closing...")
         #On va fermer toutes les sockets des clients connectés et leur envoyer un message pour pouvoir sortir de la boucle while(true) dans client.py
         for client in clients_connectes:
@@ -49,6 +50,8 @@ def Server_Exit(input_server, clients_connectes,connexion_principale,clients_awa
         #On ferme aussi la socket du server
         connexion_principale.close()
         return "exit"
+    else:
+        raise Exception
 
 
 '''

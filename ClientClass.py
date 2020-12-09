@@ -48,6 +48,12 @@ class Client:
                     break
         return result
 
+    '''
+    #* Méthode qui récupère une liste de rooms auxquelles le client appartient
+
+    #? self : le client en question 
+    #? Rooms : liste des rooms existantes
+    '''
     def List_Rooms(self, Rooms):
         list_rooms=[]
         for room in Rooms:

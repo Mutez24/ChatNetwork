@@ -322,7 +322,7 @@ def Client_Upload(msg_recu,client, clients_connectes, Rooms):
             
             try:
                 percent = (int) (sum_bytes/filesize)*100
-                print("", end=f"\r {filename} envoyé par {client.username} reçu: {percent} %")
+                print("", end=f"\r File '{filename}' sent by user '{client.username}' at {datetime.now()} from @{client.IP}:{client.port} received: {percent} %")
                 client.socket.settimeout(0.5)
                 bytes_read = client.socket.recv(1024)
                 sum_bytes+= len(bytes_read)
@@ -378,7 +378,7 @@ def Client_Ring(msg_recu,client, clients_connectes, Rooms):
 def Client_ListF(msg_recu,client, clients_connectes, Rooms):
     if(msg_recu == "#ListF"):
         list_files = os.listdir("Files_Uploaded")
-        msg_a_envoyer = "Liste des fichier : \n"
+        msg_a_envoyer = "\n Liste des fichier : \n \n"
         for fichier in list_files:
             msg_a_envoyer+= "{} \n".format(fichier)
         msg_a_envoyer = msg_a_envoyer
@@ -450,7 +450,7 @@ def Thread_File_Sender (filename,filesize,client, client_connectes):
 			
             sum_bytes+= len(bytes_read)
             percent = (int) (sum_bytes/filesize)*100
-            print("", end=f"\r {filename} envoyé à '{client.username}' : {percent} %")
+            print("", end=f"\r File '{filename}' sent to user '{client.username}' at {datetime.now()} from @{client.IP}:{client.port} : {percent} %")
             client.socket.send(bytes_read)
             
 			

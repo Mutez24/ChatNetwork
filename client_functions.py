@@ -40,6 +40,7 @@ KICK_CLIENT_CHATROOM_CLIENT="#KickRoom" #Commande utilisée par les clients pour
 LEAVE_CLIENT_CHATROOM_CLIENT="#LeaveRoom" #Commande utilisée par les clients pour quitter une room
 LIST_CLIENT_CHATROOM_CLIENT="#ListClientRoom" #Commande utilisée par les clients pour lister les clients d'une room
 
+MAX_SIZE_FILE = 999999999
 #! Hints :
 #TODO TOUJOURS mettre les 4 mêmes paramètres dans chaque fonction même si on ne se sert pas des 4
 #TODO En effet les appels de fonctions sont définis par défaut avec ces paramètres dans la fonction Check_client_functions
@@ -301,42 +302,46 @@ def Client_Upload(msg_recu,client, clients_connectes, Rooms):
     filename = filename.split(" ",1)[1]
     filename = os.path.basename(filename)
     filesize = int(filesize)
-    # On retire le client de la liste des clients connectés pour éviter qu'on ne lise ses messages comme du texte standard
-    clients_connectes.remove(client)
-    # On prévient le client que le serveur est prêt à recevoir la data du fichier
-    Send_Message("OK UPLOAD", key, client.socket)
-    
-    filename_sans_extension, extension = filename.split(".")
+    if(filesize > MAX_SIZE_FILE):
+        #Chiffre volontairement très élevé
+        Send_Message("File too big, max size {}".format(MAX_SIZE_FILE),key,client.socket)
+    else:
+        # On retire le client de la liste des clients connectés pour éviter qu'on ne lise ses messages comme du texte standard
+        clients_connectes.remove(client)
+        # On prévient le client que le serveur est prêt à recevoir la data du fichier
+        Send_Message("OK UPLOAD", key, client.socket)
+        
+        filename_sans_extension, extension = filename.split(".")
 
-    try: # On crée un dossier pour sauvegarder les fichiers uploadés
-        os.makedirs("Files_Uploaded")
-    except:
-        pass
+        try: # On crée un dossier pour sauvegarder les fichiers uploadés
+            os.makedirs("Files_Uploaded")
+        except:
+            pass
 
-    filename_for_save = "Files_Uploaded/{}_{}.{}".format(filename_sans_extension,''.join(random.choices(string.ascii_letters + string.digits, k=10)), extension)
-    #Ajouter un code à la fin du nom de base du fichier afin d'éviter des remplacements de fichier si plusieurs ont le même nom
-    sum_bytes=0
-    percent=0
-    with open(filename_for_save, "wb") as f:
-        while(True):
-            
-            try:
-                percent = (int) (sum_bytes/filesize)*100
-                print("", end=f"\r File '{filename}' sent by user '{client.username}' at {datetime.now()} from @{client.IP}:{client.port} received: {percent} %")
-                client.socket.settimeout(0.5)
-                bytes_read = client.socket.recv(1024)
-                sum_bytes+= len(bytes_read)
-                client.socket.settimeout(None) 
-                # On retire le timeout, il ne sert que pour le transfert de fichiers
-            except :
-                client.socket.settimeout(None)
-                break  
-            # On sauvegarde le fichier
-            
-            
-            f.write(bytes_read)
-        print()
-    clients_connectes.append(client)
+        filename_for_save = "Files_Uploaded/{}_{}.{}".format(filename_sans_extension,''.join(random.choices(string.ascii_letters + string.digits, k=10)), extension)
+        #Ajouter un code à la fin du nom de base du fichier afin d'éviter des remplacements de fichier si plusieurs ont le même nom
+        sum_bytes=0
+        percent=0
+        with open(filename_for_save, "wb") as f:
+            while(True):
+                
+                try:
+                    percent = (int) (sum_bytes/filesize)*100
+                    print("", end=f"\r File '{filename}' sent by user '{client.username}' at {datetime.now()} from @{client.IP}:{client.port} received: {percent} %")
+                    client.socket.settimeout(0.5)
+                    bytes_read = client.socket.recv(1024)
+                    sum_bytes+= len(bytes_read)
+                    client.socket.settimeout(None) 
+                    # On retire le timeout, il ne sert que pour le transfert de fichiers
+                except :
+                    client.socket.settimeout(None)
+                    break  
+                # On sauvegarde le fichier
+                
+                
+                f.write(bytes_read)
+            print()
+        clients_connectes.append(client)
 
 
 '''

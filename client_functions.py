@@ -300,15 +300,14 @@ def Client_Upload(msg_recu,client, clients_connectes, Rooms):
     filename = filename.split(" ",1)[1]
     filename = os.path.basename(filename)
     filesize = int(filesize)
-    #Start File-receiver Thread 
-    clients_connectes.remove(client) #client connectés remove plutot
+    # On retire le client de la liste des clients connectés pour éviter qu'on ne lise ses messages comme du texte standard
+    clients_connectes.remove(client)
+    # On prévient le client que le serveur est prêt à recevoir la data du fichier
     Send_Message("OK UPLOAD", key, client.socket)
-    #client.socket.send(b"OK UPLOAD")
-  
-
+    
     filename_sans_extension, extension = filename.split(".")
 
-    try: #Create directory to save files downloaded from server
+    try: # On crée un dossier pour sauvegarder les fichiers uploadés
         os.makedirs("Files_Uploaded")
     except:
         pass
@@ -319,18 +318,19 @@ def Client_Upload(msg_recu,client, clients_connectes, Rooms):
     percent=0
     with open(filename_for_save, "wb") as f:
         while(True):
-            # read 1024 bytes from the socket (receive)
+            
             try:
                 percent = (int) (sum_bytes/filesize)*100
                 print("", end=f"\r {filename} envoyé par {client.username} reçu: {percent} %")
                 client.socket.settimeout(0.5)
                 bytes_read = client.socket.recv(1024)
                 sum_bytes+= len(bytes_read)
-                client.socket.settimeout(None) # On retire le timeout, il ne sert que pour le transfert de fichiers
+                client.socket.settimeout(None) 
+                # On retire le timeout, il ne sert que pour le transfert de fichiers
             except :
                 client.socket.settimeout(None)
                 break  
-            # write to the file the bytes we just received
+            # On sauvegarde le fichier
             
             
             f.write(bytes_read)
@@ -395,26 +395,31 @@ def Client_Download(msg_recu,client, clients_connectes, Rooms):
     filename=""
     filesize = ""
     try:
+        # On cherche si le fichier que veut DL le client existe bien, et si oui on lui renvoie les informations sur ce fichier
         filename = msg_recu.split(' ',1)[1]
         filesize = os.path.getsize("Files/"+filename)
         msg_a_envoyer = "#TrfD {}<>{}".format(filename,filesize)
         msg_a_envoyer = msg_a_envoyer
     except:
+        # Sinon on lui dit qu'il a choisi un mauvais fichier
         msg_a_envoyer = "#TrfD Error with file"
     Send_Message(msg_a_envoyer,key,client.socket)
 
 
     if(filesize != ""): #Si le file a bien été trouvé
-        #connexion_avec_serveur.send(msg_a_envoyer)
-        clients_connectes.remove(client) # On ne veut rien lui envoyer d'autre que le fichier
+        
+        clients_connectes.remove(client) 
+        # On ne veut rien lui envoyer d'autre que le fichier
         client_ready = False
         recu = ""
         while(not client_ready):
+            # On attend que le client soit prêt à recevoir le fichier
             try:
                 recu = Receive_Message(key, client.socket).decode()
             except:
                 pass
             if(recu == "OK DOWNLOAD"): client_ready=True
+        # On lance le thread d'émission de fichier
         threading.Thread(target=Thread_File_Sender, args=(filename,filesize,client,clients_connectes,)).start()
 
 
@@ -433,19 +438,18 @@ def Thread_File_Sender (filename,filesize,client, client_connectes):
     percent=0
     with open("Files/"+filename, "rb") as f:
         while(True):
-			# read the bytes from the file
+			# On lit le fichier
             bytes_read = f.read(1024)
             if not bytes_read:
-				# file transmitting is done
+				# Transmission finie
                 break
-			# we use sendall to assure transimission in 
-			# busy networks
+			
             sum_bytes+= len(bytes_read)
             percent = (int) (sum_bytes/filesize)*100
             print("", end=f"\r {filename} envoyé à '{client.username}' : {percent} %")
             client.socket.sendall(bytes_read)
             
-			# update the progress bar
+			
     print()
     client_connectes.append(client)
 

@@ -70,7 +70,7 @@ def creation_database():
 '''
 def login_register(connexion_avec_client, infos_connexion,conn):
     global clients_connectes
-    msg = b""
+    msg = ""
     response=""
     client_already_connected = True
 
@@ -299,7 +299,8 @@ def main():
                     clients_connectes.remove(client) #On le retire des clients connectés
                     continue #On passe au client suivant
                 
-                
+                if(msg_recu ==""): continue
+                # Si le message est vide, c'est que le client vient de faire Ctrl+C. On peut donc l'ignorer et passer au client suivant
                 #! Check client functions
                 if(msg_recu[0] == "#"):
                     '''

@@ -146,7 +146,7 @@ def main():
 	msg_a_envoyer = ""
 
 	# #Exit nous sert de message de sortie
-	while msg_a_envoyer != b"#Exit":
+	while msg_a_envoyer != "#Exit":
 
 		# S'il y a quelque chose dans la queue d'input
 		if (inputQueue.qsize() > 0):			

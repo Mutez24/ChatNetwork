@@ -288,7 +288,8 @@ def List_Client_Room(msg_recu, client, clients_connectes, Rooms):
 
 
 '''
-#* Fonction qui permet à un client d'upload un fichier
+#* Fonction qui permet à un client d'upload un fichier sur le server, il sera sauvegardé dans 
+#* le dossier Files_Uploaded
 
 #? msg_recu : input ecrit par un client
 #? client : client qui a ecrit le message
@@ -367,7 +368,7 @@ def Client_Ring(msg_recu,client, clients_connectes, Rooms):
 
 
 '''
-#* Fonction qui permet à un client de voir tous les fichiers
+#* Fonction qui permet à un client de voir tous les fichiers uploadés par le passé
 
 #? msg_recu : input ecrit par un client
 #? client : client qui a ecrit le message
@@ -375,7 +376,7 @@ def Client_Ring(msg_recu,client, clients_connectes, Rooms):
 #? Rooms : liste de toutes les room
 '''
 def Client_ListF(msg_recu,client, clients_connectes, Rooms):
-    list_files = os.listdir("Files")
+    list_files = os.listdir("Files_Uploaded")
     msg_a_envoyer = "Liste des fichier : \n"
     for fichier in list_files:
         msg_a_envoyer+= "{} \n".format(fichier)
@@ -397,7 +398,7 @@ def Client_Download(msg_recu,client, clients_connectes, Rooms):
     try:
         # On cherche si le fichier que veut DL le client existe bien, et si oui on lui renvoie les informations sur ce fichier
         filename = msg_recu.split(' ',1)[1]
-        filesize = os.path.getsize("Files/"+filename)
+        filesize = os.path.getsize("Files_Uploaded/"+filename)
         msg_a_envoyer = "#TrfD {}<>{}".format(filename,filesize)
         msg_a_envoyer = msg_a_envoyer
     except:
@@ -436,7 +437,7 @@ def Thread_File_Sender (filename,filesize,client, client_connectes):
     #start sending file
     sum_bytes=0
     percent=0
-    with open("Files/"+filename, "rb") as f:
+    with open("Files_Uploaded/"+filename, "rb") as f:
         while(True):
 			# On lit le fichier
             bytes_read = f.read(1024)

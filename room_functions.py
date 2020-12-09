@@ -7,7 +7,14 @@ from RoomClass import *
 from ClientClass import *
 key = "salut"
 
-#Fonction qui permet de créer une room à partir d'un nom de room et de au moins 2 noms de clients.
+'''
+#* Permet de créer une room à partir d'un nom de room et de au moins 2 noms de clients.
+
+#? msg_recu : input ecrit par un client
+#? client : client qui a ecrit le message
+#? clients_connectés : liste qui contient les clients connectés
+#? Rooms : liste de toutes les room
+'''
 def Create_Room_RF(msg_recu, client, clients_connectes, Rooms):
     #On vérifie d'abord que le msg_recu comporte bien au moins 4 arguments.
     #Dans le cas contraire, la fonction ne peut pas fonctionner étant donné qu'elle
@@ -83,7 +90,14 @@ def Create_Room2_RF(msg_recu, client, clients_connectes, Rooms):
         Send_Message(b"Please precise a room name after the #CreateRoom command.",key,client.socket)                   
 '''  
 
-#Fonction qui permet à un membre d'une room de rejoindre une room à laquelle il appartient.
+'''
+#* Permet à un membre d'une room de rejoindre une room à laquelle il appartient.
+
+#? msg_recu : input ecrit par un client
+#? client : client qui a ecrit le message
+#? clients_connectés : liste qui contient les clients connectés
+#? Rooms : liste de toutes les room
+'''
 def Join_Room_RF(msg_recu, client, clients_connectes, Rooms):
     if(len(msg_recu.split(' ')) > 1):
         msg_recu = msg_recu.split(' ')
@@ -109,7 +123,15 @@ def Join_Room_RF(msg_recu, client, clients_connectes, Rooms):
     else:
         raise Exception
 
-#Fonction qui permet à l'admin du groupe d'ajouter un client à la room.
+
+'''
+#* Permet à l'admin du groupe d'ajouter un client à la room.
+
+#? msg_recu : input ecrit par un client
+#? client : client qui a ecrit le message
+#? clients_connectés : liste qui contient les clients connectés
+#? Rooms : liste de toutes les room
+'''
 def Add_Room_RF(msg_recu, client, clients_connectes, Rooms):
     if(len(msg_recu.split(' ')) > 2):
         msg_recu = msg_recu.split(' ')
@@ -145,7 +167,14 @@ def Add_Room_RF(msg_recu, client, clients_connectes, Rooms):
     else:
         Send_Message("Please write the correct attributes after the command.\n", key, client.socket)
 
-#Fonction qui permet à l'admin du groupe d'enlever un client de la room.
+'''
+#* Permet à l'admin du groupe d'enlever un client de la room.
+
+#? msg_recu : input ecrit par un client
+#? client : client qui a ecrit le message
+#? clients_connectés : liste qui contient les clients connectés
+#? Rooms : liste de toutes les room
+'''
 def Kick_Room_RF(msg_recu, client, clients_connectes, Rooms):
     if(len(msg_recu.split(' ')) > 2):
         msg_recu = msg_recu.split(' ')
@@ -191,7 +220,14 @@ def Kick_Room_RF(msg_recu, client, clients_connectes, Rooms):
     else:
         Send_Message("Please write the correct attributes after the command.\n", key, client.socket)
 
-#Fonction qui supprime le client de la room mentionnée.
+'''
+#* Permet de supprimer le client de la room mentionnée.
+
+#? msg_recu : input ecrit par un client
+#? client : client qui a ecrit le message
+#? clients_connectés : liste qui contient les clients connectés
+#? Rooms : liste de toutes les room
+'''
 def Leave_Room_RF(msg_recu, client, clients_connectes, Rooms):
     if(len(msg_recu.split(' ')) > 1):
         msg_recu = msg_recu.split(' ')
@@ -229,7 +265,14 @@ def Leave_Room_RF(msg_recu, client, clients_connectes, Rooms):
     else:
         raise Exception 
 
-#Fonction qui liste tous les clients d'une room à un client appartenant à cette room.
+'''
+#* Permet de lister tous les clients d'une room à un client appartenant à cette room.
+
+#? msg_recu : input ecrit par un client
+#? client : client qui a ecrit le message
+#? clients_connectés : liste qui contient les clients connectés
+#? Rooms : liste de toutes les room
+'''
 def List_Client_Room_RF(msg_recu, client, clients_connectes, Rooms):
     exist=False
     if(len(msg_recu.split(' ')) > 1):
@@ -258,7 +301,14 @@ def List_Client_Room_RF(msg_recu, client, clients_connectes, Rooms):
     else:
         raise Exception
 
-#Fonction qui affiche toutes les rooms à laquelle le client appartient.
+'''
+#* Permet d'afficher toutes les rooms à laquelle le client appartient.
+
+#? msg_recu : input ecrit par un client
+#? client : client qui a ecrit le message
+#? clients_connectés : liste qui contient les clients connectés
+#? Rooms : liste de toutes les room
+'''
 def List_Room_RF(msg_recu, client, clients_connectes, Rooms):
     msg=""
     #On récupère les rooms auxquelles le client appartient.
